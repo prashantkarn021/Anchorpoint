@@ -1,0 +1,15 @@
+# SITE_ADDRESS=:80 serves plain HTTP (local). A bare domain turns on automatic HTTPS (Linode).
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy api:8000 {
+			# Unbuffered, so the SSE activity feed streams
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy web:80
+	}
+}

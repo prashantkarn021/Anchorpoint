@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anchorpoint</title>
+  </head>
+  <body style="font-family: system-ui, sans-serif; max-width: 40rem; margin: 4rem auto; padding: 0 1rem">
+    <h1>Anchorpoint</h1>
+    <p>Scaffold is up. The frontend build will replace this page.</p>
+    <p>API health: <code id="health">checking…</code></p>
+    <p><small>Not tax advice; review with a CPA.</small></p>
+    <script>
+      fetch("/api/health")
+        .then((r) => r.json())
+        .then((j) => (document.getElementById("health").textContent = JSON.stringify(j)))
+        .catch(() => (document.getElementById("health").textContent = "unreachable"));
+    </script>
+  </body>
+</html>
