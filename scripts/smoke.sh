@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Smoke test. Usage: scripts/smoke.sh [base_url]   (default: $BASE_URL or http://localhost)
-# Read-only apart from asking for a Google sign-in URL; it never injects or resets.
+# Exercises sign-in and risk-check (which adds an audit event); never injects or resets.
 set -u
 
 BASE="${1:-${BASE_URL:-http://localhost}}"
@@ -74,8 +74,7 @@ check "assessment score"   GET  /api/assessment      '"score"'
 check "monthly ledger"     GET  /api/ledger/monthly  '"month"'
 # 503 = no Google client or vault key on this machine
 soft  "gmail sign-in url"  POST /api/connections/gmail/start 'accounts.google.com' "503"
-# 404/405 = endpoint not built yet
-soft  "risk check verdict" POST /api/risk-check      '"verdict"' "404 405" "$OFFER"
+check "risk check verdict" POST /api/risk-check      '"verdict"' "$OFFER"
 check "activity feed"      GET  /api/activity        '['  # a JSON list; empty right after a reset
 
 if [[ $fail -eq 0 ]]; then
