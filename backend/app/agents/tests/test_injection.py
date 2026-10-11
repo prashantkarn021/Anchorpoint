@@ -69,10 +69,12 @@ def test_clean_email_produces_a_candidate(models):
     assert r.candidate.amount == 1150.0 and r.events == []
 
 
-def test_noise_produces_nothing(models):
+def test_noise_is_logged_as_skipped(models):
     models["triage"] = TriageResult(relevant=False, confidence=0.95)
-    r = ingest(_mail("30% off fall jackets"), PROFILE, CallBudget())
-    assert r.candidate is None and r.events == [] and models["extract_calls"] == 0
+    r = ingest(_mail("30% off fall jackets with code FALL30"), PROFILE, CallBudget())
+    assert r.candidate is None and models["extract_calls"] == 0
+    assert [e.action for e in r.events] == ["skipped"] and r.events[0].record_id is None
+    assert r.events[0].actor == "agent" and "FALL30" not in r.events[0].detail  # email text never echoed
 
 
 @pytest.mark.parametrize("text", [
@@ -99,6 +101,7 @@ def wire(monkeypatch):
     monkeypatch.setenv("INFERENCE_BASE_URL", "http://127.0.0.1:9/v1")
     monkeypatch.setenv("MODEL_ID", "test")
     monkeypatch.setattr(extractor, "_cache", {})
+    monkeypatch.setattr(triage, "_cache", {})  # each test starts with an empty triage cache
     state = {"requests": 0, "fail_first": 0}
 
     async def fake_request(self, *a, **kw):
@@ -183,7 +186,9 @@ def test_at_most_four_model_calls_in_flight(monkeypatch):
 
     monkeypatch.setattr(triage, "Agent", SlowAgent)
     monkeypatch.setattr(triage, "make_model", lambda budget=None: None)
-    threads = [threading.Thread(target=triage.triage, args=(_mail(RENT),)) for _ in range(10)]
+    monkeypatch.setattr(triage, "_cache", {})
+    # distinct texts: every thread must really call the model (no cache hits)
+    threads = [threading.Thread(target=triage.triage, args=(_mail(f"{RENT} #{n}"),)) for n in range(10)]
     for t in threads:
         t.start()
     for t in threads:

@@ -28,7 +28,7 @@ def main() -> int:
             if item.source_id == "sample-nearmiss":
                 ok = ok and needs_review(r.candidate)
         else:
-            ok = r.candidate is None and not actions
+            ok = r.candidate is None and actions == ["skipped"]
         got = (f"{r.candidate.doc_type} review={needs_review(r.candidate)}" if r.candidate else "-")
         passed += ok
         print(f"{'PASS' if ok else 'FAIL'}  {item.source_id:<16} candidate={got:<28} events={actions}")
