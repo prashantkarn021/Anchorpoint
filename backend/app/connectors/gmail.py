@@ -30,7 +30,9 @@ KEYWORDS = (
     "renewal OR registration OR confirmation OR paystub OR bill"
 )
 PREFILTER = f"({KEYWORDS} OR has:attachment) -category:promotions -category:social"
-BACKFILL_WINDOW = "newer_than:12m"
+# The rules look at the previous 12 *full* months, which reaches up to 13 months back, so
+# 12 months would drop the oldest one. 400 days matches the bank connector's history.
+BACKFILL_WINDOW = "newer_than:400d"
 
 PAGE_SIZE = 25
 MAX_ITEMS = 500          # hard cap per sync, protects the LLM budget downstream
