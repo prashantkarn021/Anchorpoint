@@ -83,9 +83,20 @@ class GmailConnector:
         if len(ids) > MAX_ITEMS:
             log.warning("gmail sync: %d messages waiting, taking the oldest %d", len(ids), MAX_ITEMS)
             ids = ids[-MAX_ITEMS:]  # Gmail lists newest first
-        self.oauth.access_token()  # refresh once here, not in every worker
+        token = self.oauth.access_token()
+
+        def fetch(message_id: str) -> RawItem | None:
+            try:
+                return self._fetch_item(message_id, token)
+            except GoogleAuthError as exc:
+                if exc.status == 404:
+                    return None
+                raise
+
         with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as pool:
-            items = list(pool.map(self._fetch_item, ids))
+            items = [item for item in pool.map(fetch, ids) if item is not None]
+        if not items:
+            return [], cursor or "0"
         items.sort(key=lambda item: item.received_at)
         newest = int(items[-1].received_at.timestamp())
         return items, str(max(newest, int(cursor or 0)))
@@ -109,8 +120,10 @@ class GmailConnector:
                 break
         return ids
 
-    def _fetch_item(self, message_id: str) -> RawItem:
-        message = self.oauth.get(f"{API}/messages/{message_id}", {"format": "full"})
+    def _fetch_item(self, message_id: str, token: str) -> RawItem:
+        message = self.oauth.http(
+            "GET", f"{API}/messages/{message_id}", {"format": "full"}, None, token
+        )
         payload = message.get("payload", {})
         headers = {
             header["name"].lower(): header["value"] for header in payload.get("headers", [])
