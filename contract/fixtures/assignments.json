@@ -1,0 +1,57 @@
+[
+  {
+    "id": "assignment-1",
+    "facility": "Fictional Meadowlight Medical Center",
+    "metro": {
+      "name": "Wichita",
+      "state": "KS",
+      "high_cost": false
+    },
+    "start": "2026-04-06",
+    "end": "2026-07-05",
+    "status": "completed",
+    "weekly_taxable_wage": 1280,
+    "weekly_lodging_stipend": 850,
+    "weekly_mie_stipend": 350,
+    "distance_from_home_mi": 198,
+    "source_record_ids": []
+  },
+  {
+    "id": "assignment-2",
+    "facility": "Fictional Silverleaf Medical Center",
+    "metro": {
+      "name": "Des Moines",
+      "state": "IA",
+      "high_cost": false
+    },
+    "start": "2026-09-07",
+    "end": "2026-12-06",
+    "status": "active",
+    "weekly_taxable_wage": 1280,
+    "weekly_lodging_stipend": 850,
+    "weekly_mie_stipend": 350,
+    "distance_from_home_mi": 194,
+    "source_record_ids": [
+      "paystub-1"
+    ]
+  },
+  {
+    "id": "assignment-3",
+    "facility": "Fictional Riverglass Medical Center",
+    "metro": {
+      "name": "Omaha",
+      "state": "NE",
+      "high_cost": false
+    },
+    "start": "2027-01-04",
+    "end": "2027-04-04",
+    "status": "offered",
+    "weekly_taxable_wage": 1280,
+    "weekly_lodging_stipend": 850,
+    "weekly_mie_stipend": 350,
+    "distance_from_home_mi": 187,
+    "source_record_ids": [
+      "contract-offer-1"
+    ]
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "connection-gmail",
+    "provider": "gmail",
+    "status": "connected",
+    "scopes": [
+      "read"
+    ],
+    "connected_at": "2026-01-02T12:00:00Z",
+    "last_sync": "2026-10-10T12:00:00Z",
+    "items_seen": 6,
+    "records_created": 6
+  },
+  {
+    "id": "connection-bank",
+    "provider": "bank",
+    "status": "connected",
+    "scopes": [
+      "read"
+    ],
+    "connected_at": "2026-01-02T12:00:00Z",
+    "last_sync": "2026-10-10T12:00:00Z",
+    "items_seen": 2,
+    "records_created": 2
+  },
+  {
+    "id": "connection-calendar",
+    "provider": "calendar",
+    "status": "revoked",
+    "scopes": [
+      "read"
+    ],
+    "connected_at": "2026-01-02T12:00:00Z",
+    "last_sync": "2026-09-01T12:00:00Z",
+    "items_seen": 0,
+    "records_created": 0
+  }
+]

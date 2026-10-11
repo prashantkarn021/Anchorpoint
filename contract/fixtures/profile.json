@@ -1,0 +1,11 @@
+{
+  "id": "maya-torres",
+  "name": "Maya Torres",
+  "home_address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+  "home_metro": {
+    "name": "Kansas City",
+    "state": "MO",
+    "high_cost": false
+  },
+  "family_at_home": true
+}

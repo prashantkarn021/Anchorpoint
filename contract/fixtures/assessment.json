@@ -1,0 +1,50 @@
+{
+  "score": 67,
+  "status": "needs_attention",
+  "factors_met": 2,
+  "factors": [
+    {
+      "factor": 1,
+      "label": "Work near the home metro",
+      "score": 0,
+      "met": false,
+      "record_ids": [
+        "paystub-1"
+      ]
+    },
+    {
+      "factor": 2,
+      "label": "Maintain home housing expenses",
+      "score": 34,
+      "met": true,
+      "record_ids": [
+        "lease-1",
+        "rent-09",
+        "rent-10",
+        "utility-09",
+        "utility-10"
+      ]
+    },
+    {
+      "factor": 3,
+      "label": "Family and return visits at home",
+      "score": 33,
+      "met": true,
+      "record_ids": [
+        "trip-home-1"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "rule_id": "R1",
+      "severity": "warn",
+      "title": "Rent evidence missing for August",
+      "detail": "Synthetic fixture finding: the August 2026 ledger has no rent-payment evidence. A missing record does not establish nonpayment.",
+      "record_ids": [
+        "lease-1"
+      ],
+      "recommended_action": "Upload the August rent receipt or bank transaction for CPA review."
+    }
+  ]
+}
