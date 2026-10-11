@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, team convention
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for p1_samples
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # model quotes may hold non-cp1252 chars (Windows)
 
 from p1_samples import EXPECTED, PROFILE, SAMPLES
 
