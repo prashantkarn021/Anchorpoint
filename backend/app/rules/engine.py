@@ -1,11 +1,22 @@
 from datetime import date
 from itertools import pairwise
 
+from backend.app.common.address import address_key
 from backend.app.models import Assignment, Finding, Record
 
 
+def _month(record: Record) -> int:
+    """Month index of the period a record covers: period_start when set, else its date."""
+    d = record.period_start or record.date
+    return d.year * 12 + d.month - 1
+
+
 def check_housing_continuity(records: list[Record], today: date) -> list[Finding]:
-    """Flag missing housing-payment evidence in the previous 12 full months."""
+    """Flag missing housing-payment evidence in the previous 12 full months.
+
+    Expects posted transactions only: the bank connector drops Plaid `pending` ones, since Record
+    has no field to tell them apart here.
+    """
     current_month = today.year * 12 + today.month - 1
     window = range(current_month - 12, current_month)
     counted = [
@@ -13,9 +24,9 @@ def check_housing_continuity(records: list[Record], today: date) -> list[Finding
         for record in records
         if record.type in ("rent_payment", "mortgage")
         and record.user_status != "rejected"
-        and record.date.year * 12 + record.date.month - 1 in window
+        and _month(record) in window
     ]
-    covered = {record.date.year * 12 + record.date.month - 1 for record in counted}
+    covered = {_month(record) for record in counted}
     missing = [
         f"{month // 12:04d}-{month % 12 + 1:02d}"
         for month in window
@@ -41,19 +52,19 @@ def check_utility_continuity(
     """Flag missing home utility evidence in the previous 12 full months."""
     current_month = today.year * 12 + today.month - 1
     window = range(current_month - 12, current_month)
-    normalized_home = " ".join(home_address.lower().split())
+    home_key = address_key(home_address)
     counted = [
         record
         for record in records
         if record.type in ("utility_bill", "utility_payment")
         and record.user_status != "rejected"
-        and record.date.year * 12 + record.date.month - 1 in window
+        and _month(record) in window
         and (
             record.address is None
-            or " ".join(record.address.lower().split()) == normalized_home
+            or (home_key != "" and address_key(record.address) == home_key)
         )
     ]
-    covered = {record.date.year * 12 + record.date.month - 1 for record in counted}
+    covered = {_month(record) for record in counted}
     missing = [
         f"{month // 12:04d}-{month % 12 + 1:02d}"
         for month in window

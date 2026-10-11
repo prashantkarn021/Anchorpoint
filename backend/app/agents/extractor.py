@@ -5,13 +5,13 @@ profile and triage hint sit outside the fence; only source text is fenced as unt
 """
 
 import io
-import re
 
 from pypdf import PdfReader
 from strands import Agent
 
 from backend.app.agents.llm import make_model
 from backend.app.agents.prompts import EXTRACTOR_SYSTEM, item_text, wrap_document
+from backend.app.common.address import address_key
 from backend.app.common.hashing import content_hash
 from backend.app.models import CandidateRecord, Profile, RawItem, RecordType
 
@@ -39,25 +39,8 @@ def enforce(c: CandidateRecord, text: str) -> CandidateRecord:
     return c.model_copy(update=update)
 
 
-_ADDR_WORDS = {
-    "street": "st", "avenue": "ave", "av": "ave", "road": "rd", "drive": "dr", "boulevard": "blvd",
-    "lane": "ln", "court": "ct", "place": "pl", "terrace": "ter", "parkway": "pkwy", "highway": "hwy",
-    "apartment": "unit", "apt": "unit", "suite": "unit", "ste": "unit",
-}  # no N/North folding: "E St" and "East St" can be different streets
-
-
-def address_key(s: str) -> str:
-    """Comparable form: lowercase, no punctuation, St/Street and Apt/#/Unit folded together."""
-    out: list[str] = []
-    for t in re.findall(r"[^\W_]+", s.lower().replace("#", " unit ")):
-        t = _ADDR_WORDS.get(t, t)
-        if not (t == "unit" and out and out[-1] == "unit"):  # "Apt #4B" -> one unit token
-            out.append(t)
-    return " ".join(out)
-
-
 def match_home(c: CandidateRecord, home_address: str) -> CandidateRecord:
-    """R2 compares the home address exactly; if the doc names the same place, use the profile's spelling."""
+    """If the doc names the home address, store the profile's spelling so the ledger shows one form."""
     # ponytail: whole-address match only; a doc that omits city/ZIP or spells out the state stays as written
     if c.address and (key := address_key(c.address)) and key == address_key(home_address):
         return c.model_copy(update={"address": home_address})
