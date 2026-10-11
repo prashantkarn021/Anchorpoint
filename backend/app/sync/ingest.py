@@ -16,7 +16,11 @@ from backend.app.agents.llm import CallBudget
 from backend.app.connectors.base import Connector
 from backend.app.ledger import Ledger
 from backend.app.models import AuditEvent, Profile, RawItem
-from backend.app.sync.mapping import record_from_bank, record_from_candidate
+from backend.app.sync.mapping import (
+    record_from_bank,
+    record_from_calendar,
+    record_from_candidate,
+)
 from backend.app.sync.state import SyncState
 
 WORKERS = 4  # the model allows 4 calls at once (llm.model_slot); more threads would only queue
@@ -127,4 +131,25 @@ def sync_bank(connector: Connector, ledger: Ledger, state: SyncState, profile: P
         _event(ledger, "skipped", f"bank: {result.skipped} everyday transaction(s) are not evidence")
     state.set_cursor("bank", cursor)
     state.set_last_sync("bank", datetime.now(UTC).isoformat())
+    return result
+
+
+def sync_calendar(connector: Connector, ledger: Ledger, state: SyncState, profile: Profile) -> SyncResult:
+    """Calendar events never reach the model: fixed title keywords map them (trips, assignments)."""
+    items, cursor = connector.fetch_since(state.cursor("calendar"))
+    result = SyncResult(provider="calendar", fetched=len(items), new=len(items))
+    if items:
+        _event(ledger, "found", f"calendar: {len(items)} event(s) to read", actor="system")
+    for item in items:
+        record = record_from_calendar(item)
+        state.mark("calendar", item.source_id, "record" if record else "skipped")
+        if record is None:
+            result.skipped += 1
+            continue
+        ledger.upsert_record(record)
+        result.records += 1
+    if result.skipped:
+        _event(ledger, "skipped", f"calendar: {result.skipped} event(s) are not evidence")
+    state.set_cursor("calendar", cursor)
+    state.set_last_sync("calendar", datetime.now(UTC).isoformat())
     return result
