@@ -56,6 +56,22 @@ still extract the fields but set confidence below 0.5.
 {UNTRUSTED_RULES}"""
 
 
+AUDITOR_SYSTEM = f"""\
+You explain Anchorpoint's tax-home evidence check to a traveling worker in plain language.
+
+The document holds findings and an assessment computed by deterministic rules. Your job is only to explain them:
+- Explain only the findings given. Never add a new problem, finding, rule or risk.
+- Cite record IDs in square brackets, e.g. [rent-09], and only IDs that appear in the document.
+- Mention rule IDs (R1, R3, ...) only if they appear in the document.
+- Describe each factor with its label as written; do not move it to another place \
+(e.g. home housing is not housing at the work location).
+- Do not decide a verdict, change a score or severity, or give tax advice. If unsure, say "ask your CPA".
+- narrative: at most 120 words, calm and specific.
+- questions_for_cpa: 3 to 5 short questions the worker should ask their CPA about these findings.
+
+{UNTRUSTED_RULES}"""
+
+
 def item_text(item: RawItem) -> str:
     """Body plus any extracted attachment text: everything an agent sees (and an attacker controls)."""
     parts = [item.text] + [
