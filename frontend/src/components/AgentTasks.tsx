@@ -36,6 +36,8 @@ const VISIBLE = 5;
 interface Decided {
   task: AgentTask;
   status: Exclude<UserStatus, "pending">;
+  /** When the answer was saved (ms). */
+  at: number;
 }
 
 /**
@@ -57,10 +59,23 @@ export function AgentTasks({ lastEvent }: { lastEvent: AuditEvent | null }) {
 
   const [busy, setBusy] = useState<string | null>(null);
 
-  // Answered records drop out right away, before the ledger refetch lands.
+  // Answered records drop out right away, before the ledger refetch lands. Once the pending list
+  // is newer than the answer, the server is the truth again: a record that is pending after that
+  // (Reset demo, "Mark pending" in the drawer) asks again, and its Done entry goes away.
+  const fresh = pending.dataUpdatedAt;
+  const reopened = useMemo(() => {
+    const ids = new Set((pending.data ?? []).map((r) => r.id));
+    return (d: Decided) => fresh > d.at && d.task.records.some((r) => ids.has(r.id));
+  }, [pending.data, fresh]);
+  const done = useMemo(() => decided.filter((d) => !reopened(d)), [decided, reopened]);
+  // Forget reopened answers for good, so one can't come back once the record is decided again.
+  useEffect(() => {
+    setDecided((ds) => (ds.some(reopened) ? ds.filter((d) => !reopened(d)) : ds));
+  }, [reopened]);
   const decidedIds = useMemo(
-    () => new Set(decided.flatMap((d) => d.task.records.map((r) => r.id))),
-    [decided],
+    () =>
+      new Set(done.filter((d) => d.at >= fresh).flatMap((d) => d.task.records.map((r) => r.id))),
+    [done, fresh],
   );
   const tasks = useMemo(
     () =>
@@ -70,7 +85,7 @@ export function AgentTasks({ lastEvent }: { lastEvent: AuditEvent | null }) {
       ),
     [pending.data, profile.data?.home_address, decidedIds],
   );
-  const total = tasks.length + decided.length;
+  const total = tasks.length + done.length;
 
   useEffect(() => {
     if (!open) return;
@@ -97,7 +112,11 @@ export function AgentTasks({ lastEvent }: { lastEvent: AuditEvent | null }) {
     setBusy(task.id);
     try {
       await setStatus(task, status);
-      setDecided((d) => [{ task, status }, ...d]);
+      const ids = new Set(task.records.map((r) => r.id));
+      setDecided((ds) => [
+        { task, status, at: Date.now() },
+        ...ds.filter((d) => !d.task.records.some((r) => ids.has(r.id))),
+      ]);
     } catch (e) {
       toast({ tone: "error", title: "Couldn't save that", body: errorMessage(e) });
     } finally {
@@ -185,15 +204,15 @@ export function AgentTasks({ lastEvent }: { lastEvent: AuditEvent | null }) {
                   aria-label="Questions answered"
                   aria-valuemin={0}
                   aria-valuemax={total}
-                  aria-valuenow={decided.length}
+                  aria-valuenow={done.length}
                 >
                   <div
                     className="h-full rounded-full bg-good transition-[width]"
-                    style={{ width: `${(decided.length / total) * 100}%` }}
+                    style={{ width: `${(done.length / total) * 100}%` }}
                   />
                 </div>
                 <span className="tnum text-xs text-ink-3">
-                  {decided.length} of {total} done
+                  {done.length} of {total} done
                 </span>
               </div>
             ) : null}
@@ -206,7 +225,7 @@ export function AgentTasks({ lastEvent }: { lastEvent: AuditEvent | null }) {
               <p className="px-4 py-6 text-center text-sm text-high">
                 {errorMessage(pending.error)}
               </p>
-            ) : !tasks.length && !decided.length ? (
+            ) : !tasks.length && !done.length ? (
               <div className="px-6 py-8 text-center">
                 <CircleCheck className="mx-auto size-8 text-good" aria-hidden />
                 <p className="mt-2 text-sm font-medium text-ink">You're all caught up</p>
@@ -248,13 +267,13 @@ export function AgentTasks({ lastEvent }: { lastEvent: AuditEvent | null }) {
               </Link>
             ) : null}
 
-            {decided.length ? (
+            {done.length ? (
               <div className="border-t border-line bg-canvas/60 px-4 py-3">
                 <p className="mb-1.5 text-[0.6875rem] font-semibold tracking-wide text-ink-4 uppercase">
                   Done
                 </p>
                 <ul className="space-y-1">
-                  {decided.map((d) => (
+                  {done.map((d) => (
                     <li key={d.task.id} className="flex items-center gap-2 text-[0.8125rem]">
                       {d.status === "confirmed" ? (
                         <CircleCheck className="size-4 shrink-0 text-good" aria-label="Yes" />
