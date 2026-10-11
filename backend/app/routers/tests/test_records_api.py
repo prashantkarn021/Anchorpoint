@@ -31,9 +31,8 @@ def ledger(tmp_path):
 
 @pytest.fixture
 def client(ledger):
-    from backend.app.routers.records import get_ledger
-
     from backend.app.main import app
+    from backend.app.routers.records import get_ledger
 
     app.dependency_overrides[get_ledger] = lambda: ledger
     try:
@@ -204,9 +203,8 @@ def test_null_factor_is_an_explicit_edit(client, persisted):
 
 
 def test_restart_keeps_edits_and_history(client, ledger, persisted):
-    from backend.app.routers.records import get_ledger, router
-
     from backend.app.ledger import Ledger
+    from backend.app.routers.records import get_ledger, router
 
     response = client.patch(f"/api/records/{persisted.id}", json={
         "user_status": "confirmed", "edits": {"amount": 1800.0},
