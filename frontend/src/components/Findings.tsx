@@ -46,12 +46,15 @@ export function FindingsList({ findings, empty }: { findings: Finding[]; empty?:
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-sm font-semibold text-ink">{f.title}</h3>
                 <SeverityBadge severity={f.severity} />
-                <span className="font-mono text-[11px] text-ink-4" title="Deterministic rule ID">
+                <span
+                  className="font-mono text-[0.6875rem] text-ink-4"
+                  title="Deterministic rule ID"
+                >
                   {f.rule_id}
                 </span>
               </div>
-              <p className="mt-1 text-[13.5px] leading-relaxed text-ink-2">{f.detail}</p>
-              <p className="mt-2 flex items-start gap-1.5 text-[13px] text-ink">
+              <p className="mt-1 text-[0.8438rem] leading-relaxed text-ink-2">{f.detail}</p>
+              <p className="mt-2 flex items-start gap-1.5 text-[0.8125rem] text-ink">
                 <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-brand-600" aria-hidden />
                 <span>{f.recommended_action}</span>
               </p>
@@ -98,14 +101,14 @@ export function ScoreRing({
   return (
     <div
       className="relative grid shrink-0 place-items-center"
-      style={{ width: size, height: size }}
+      style={{ width: `${size / 16}rem`, height: `${size / 16}rem` }}
       role="meter"
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={v}
       aria-label={`Tax home strength ${v} out of 100, ${ASSESSMENT_LABEL[status]}`}
     >
-      <svg width={size} height={size} className="-rotate-90" aria-hidden>
+      <svg viewBox={`0 0 ${size} ${size}`} className="size-full -rotate-90" aria-hidden>
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -127,7 +130,7 @@ export function ScoreRing({
         />
       </svg>
       <div className="absolute text-center">
-        <p className="text-[44px] leading-none font-semibold tracking-tight text-ink">{v}</p>
+        <p className="text-[2.75rem] leading-none font-semibold tracking-tight text-ink">{v}</p>
         <p className="mt-1 text-xs text-ink-3">of 100</p>
       </div>
     </div>

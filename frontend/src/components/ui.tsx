@@ -32,7 +32,7 @@ const VARIANT: Record<Variant, string> = {
 };
 
 const SIZE: Record<Size, string> = {
-  sm: "h-8 px-2.5 text-[13px] gap-1.5 rounded-md",
+  sm: "h-8 px-2.5 text-[0.8125rem] gap-1.5 rounded-md",
   md: "h-9 px-3.5 text-sm gap-2 rounded-lg",
 };
 
@@ -120,8 +120,8 @@ export function CardHeader({
   return (
     <div className={clsx("flex items-start justify-between gap-4 px-5 pt-4 pb-3", className)}>
       <div className="min-w-0">
-        <h2 className="text-[15px] font-semibold tracking-tight text-ink">{title}</h2>
-        {subtitle ? <p className="mt-0.5 text-[13px] text-ink-3">{subtitle}</p> : null}
+        <h2 className="text-[0.9375rem] font-semibold tracking-tight text-ink">{title}</h2>
+        {subtitle ? <p className="mt-0.5 text-[0.8125rem] text-ink-3">{subtitle}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -218,7 +218,7 @@ export const PROVIDER_ICON: Record<Provider, LucideIcon> = {
 export function ProviderTag({ provider, compact }: { provider: Provider; compact?: boolean }) {
   const Icon = PROVIDER_ICON[provider];
   return (
-    <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-2">
+    <span className="inline-flex items-center gap-1.5 text-[0.8125rem] text-ink-2">
       <span className="grid size-6 place-items-center rounded-md border border-line bg-sunken">
         <Icon className="size-3.5 text-ink-2" aria-hidden />
       </span>
@@ -295,7 +295,7 @@ export function EmptyState({
         <Icon className="size-5 text-ink-3" aria-hidden />
       </span>
       <p className="mt-3 text-sm font-medium text-ink">{title}</p>
-      {body ? <p className="mt-1 max-w-sm text-[13px] text-ink-3">{body}</p> : null}
+      {body ? <p className="mt-1 max-w-sm text-[0.8125rem] text-ink-3">{body}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
   );
@@ -320,7 +320,7 @@ export function ErrorState({
         <CircleAlert className="size-5 text-high" aria-hidden />
       </span>
       <p className="mt-3 text-sm font-medium text-ink">Couldn't load this</p>
-      <p className="mt-1 max-w-sm text-[13px] text-ink-3">{msg}</p>
+      <p className="mt-1 max-w-sm text-[0.8125rem] text-ink-3">{msg}</p>
       {onRetry ? (
         <Button className="mt-4" size="sm" icon={RefreshCw} onClick={onRetry}>
           Try again
@@ -342,7 +342,7 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-[22px] font-semibold tracking-tight text-ink">{title}</h1>
+        <h1 className="text-[1.375rem] font-semibold tracking-tight text-ink">{title}</h1>
         {description ? <p className="mt-1 max-w-2xl text-sm text-ink-3">{description}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -352,7 +352,7 @@ export function PageHeader({
 
 export function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="rounded border border-line-strong bg-surface px-1.5 py-px font-mono text-[11px] text-ink-3">
+    <kbd className="rounded border border-line-strong bg-surface px-1.5 py-px font-mono text-[0.6875rem] text-ink-3">
       {children}
     </kbd>
   );
