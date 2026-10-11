@@ -6,7 +6,14 @@ from threading import Lock
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictFloat,
+    TypeAdapter,
+    model_validator,
+)
 
 from backend.app.ledger import Ledger
 from backend.app.models import Provider, Record, RecordType
@@ -20,7 +27,12 @@ _ledger_lock = Lock()
 @cache
 def _ledger_for_path(path: str) -> Ledger:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    return Ledger(path)
+    ledger = Ledger(path)
+    if os.getenv("SEED_FIXTURES", "1") == "1" and not ledger.list_records():
+        fixtures = Path(__file__).resolve().parents[3] / "contract" / "fixtures" / "records.json"
+        for item in TypeAdapter(list[Record]).validate_json(fixtures.read_text(encoding="utf-8")):
+            ledger.upsert_record(item)
+    return ledger
 
 
 def get_ledger() -> Ledger:
