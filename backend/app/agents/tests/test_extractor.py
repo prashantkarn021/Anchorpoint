@@ -63,7 +63,7 @@ def test_confidence_clamped_and_threshold():
 def test_cache_hit_skips_model(monkeypatch):
     calls = []
     monkeypatch.setattr(extractor, "_cache", {})
-    monkeypatch.setattr(extractor, "_run_agent", lambda p: calls.append(p) or _c())
+    monkeypatch.setattr(extractor, "_run_agent", lambda p, budget=None: calls.append(p) or _c())
     item = RawItem(provider="gmail", source_id="a", received_at=datetime(2026, 9, 1, tzinfo=UTC), text=SOURCE)
     same_text_new_id = item.model_copy(update={"source_id": "b"})
     first, cached = extract(item, PROFILE, "rent_payment")

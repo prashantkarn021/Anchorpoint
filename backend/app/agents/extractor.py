@@ -10,7 +10,7 @@ import re
 from pypdf import PdfReader
 from strands import Agent
 
-from backend.app.agents.llm import make_model
+from backend.app.agents.llm import CallBudget, make_model, model_slot
 from backend.app.agents.prompts import EXTRACTOR_SYSTEM, item_text, wrap_document
 from backend.app.common.hashing import content_hash
 from backend.app.models import CandidateRecord, Profile, RawItem, RecordType
@@ -74,22 +74,33 @@ def pdf_text(data: bytes) -> str:
     return "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(data)).pages).strip()
 
 
-def _run_agent(prompt: str) -> CandidateRecord:
-    agent = Agent(model=make_model(), system_prompt=EXTRACTOR_SYSTEM, tools=[], callback_handler=None)
-    result = agent(prompt, structured_output_model=CandidateRecord, limits={"turns": 3})
+def _run_agent(prompt: str, budget: CallBudget | None = None) -> CandidateRecord:
+    agent = Agent(model=make_model(budget), system_prompt=EXTRACTOR_SYSTEM, tools=[], callback_handler=None)
+    with model_slot:
+        result = agent(prompt, structured_output_model=CandidateRecord, limits={"turns": 3})
     if result.structured_output is None:
         raise RuntimeError(f"extractor gave no valid output (stop_reason={result.stop_reason})")
     return result.structured_output
 
 
-def extract(item: RawItem, profile: Profile, doc_type: RecordType) -> tuple[CandidateRecord, bool]:
-    """Returns (record, cached). Raises on model failure; the caller retries next sync (fallbacks: step 10)."""
-    text = item_text(item)
-    holder = f"Account holder (trusted, from the app): {profile.name}, home address: {profile.home_address}"
-    key = (content_hash(text), doc_type, content_hash(holder))  # profile edit -> re-extract
+def _holder(profile: Profile) -> str:
+    return f"Account holder (trusted, from the app): {profile.name}, home address: {profile.home_address}"
+
+
+def _key(item: RawItem, profile: Profile, doc_type: RecordType) -> tuple[str, str, str]:
+    # profile edit -> new key -> re-extract
+    return content_hash(item_text(item)), doc_type, content_hash(_holder(profile))
+
+
+def extract(item: RawItem, profile: Profile, doc_type: RecordType,
+            budget: CallBudget | None = None) -> tuple[CandidateRecord, bool]:
+    """Returns (record, cached). A cache hit makes no model request, so it costs no budget.
+    Raises on model failure or an exhausted budget; pipeline.ingest turns that into an event."""
+    text, holder, key = item_text(item), _holder(profile), _key(item, profile, doc_type)
     if key in _cache:
         return _cache[key].model_copy(deep=True), True  # callers can't mutate the cache
-    record = enforce(_run_agent(f"{holder}\nTriage guessed doc_type: {doc_type}\n\n" + wrap_document(text)), text)
+    prompt = f"{holder}\nTriage guessed doc_type: {doc_type}\n\n" + wrap_document(text)
+    record = enforce(_run_agent(prompt, budget), text)
     record = match_home(record, profile.home_address)
     _cache[key] = record
     return record.model_copy(deep=True), False
