@@ -136,7 +136,7 @@ Times are targets. The contract check is the only step with a wait, so keep talk
 
 - **Reset demo:** wipes the ledger.
 - **Revoke** on a connection: disconnects Gmail or the bank.
-- The **Google Calendar** card: added late and not rehearsed.
+- **Connect** or **Revoke** on any card, Calendar included. All three are connected; leave them.
 - Typing an offer by hand: the check reads a labelled format. Use the sample and edit it.
 
 ## Questions you will get
