@@ -4,6 +4,24 @@ Connect your accounts once. Anchorpoint's agent finds, reads and files your tax-
 
 Built at Hack Midwest. All people, merchants and accounts in the demo are synthetic. **Not tax advice; review with a CPA.**
 
+## Live deployment
+
+| | |
+| --- | --- |
+| URL | <https://172-232-25-241.sslip.io> |
+| API | <https://172-232-25-241.sslip.io/api/health> |
+| Host | Akamai Cloud (Linode) VM, Chicago, public IP `172.232.25.241` |
+| Runs | `docker compose` from this repo's `main`, in `/opt/anchorpoint` |
+| HTTPS | Caddy, with a Let's Encrypt certificate for the `sslip.io` name |
+
+`sslip.io` is a public DNS service that resolves `172-232-25-241.sslip.io` to that IP, which gives the server a hostname Google OAuth accepts.
+
+**The server does not update when a PR merges.** A deploy is a manual `git pull` and rebuild over SSH (see [Deploy](#deploy)), and only P4 has SSH access. Ask P4 to deploy or to check something on the server.
+
+Code reaches the server from GitHub. Data reaches it from the services themselves: the server calls Gmail, Plaid and Akamai inference directly. Keys live in the server's `.env` and are not in this repo.
+
+The bank connection is held in memory, so it drops on every deploy; connect it again from the Connections page or run a demo reset.
+
 ## Run it locally
 
 You need Docker.
