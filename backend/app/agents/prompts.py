@@ -46,9 +46,11 @@ Fill the fields only with facts stated in the document:
 use null (or an empty list) when it is not stated. Never guess or infer missing values.
 - Dates as YYYY-MM-DD, only when year, month and day are all stated; otherwise use null / omit the date.
 - Amounts as plain numbers without currency symbols.
-- evidence_quote: a short span copied word for word from the document (under 200 characters) \
-that supports the extraction.
+- evidence_quote: one continuous span copied word for word from the document (under 200 characters) \
+that supports the extraction. Do not join lines that are not next to each other.
 - confidence: 0.0 to 1.0. Lower it when text is unclear or key fields are missing.
+- If the document's person or address differs from the account holder given outside the document, \
+still extract the fields but set confidence below 0.5.
 - factor: leave null; it is set by deterministic code, not by you.
 
 {UNTRUSTED_RULES}"""

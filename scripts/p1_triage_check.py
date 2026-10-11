@@ -1,4 +1,4 @@
-"""Step 6 check: triage agent on the 5 synthetic samples, live against Akamai.
+"""Step 6 check: triage agent on the synthetic samples, live against Akamai.
 
 Run from repo root: .venv\\Scripts\\python scripts\\p1_triage_check.py
 """
