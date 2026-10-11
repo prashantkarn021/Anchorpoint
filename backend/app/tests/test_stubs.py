@@ -1,4 +1,6 @@
+import json
 from collections import Counter
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from pydantic import TypeAdapter
@@ -14,6 +16,11 @@ from backend.app.models import (
 )
 
 client = TestClient(app)
+
+
+def fixture_data(filename):
+    path = Path(__file__).resolve().parents[3] / "contract" / "fixtures" / filename
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def test_profile():
@@ -40,11 +47,10 @@ def test_records():
     response = client.get("/api/records")
     assert response.status_code == 200
     records = TypeAdapter(list[Record]).validate_python(response.json())
-    assert Counter(item.type for item in records) == {
-        "lease": 1, "rent_payment": 2, "utility_bill": 2,
-        "trip_home": 1, "paystub": 1, "contract_offer": 1,
-    }
-    assert len({item.id for item in records}) == 8
+    assert Counter(item.type for item in records) == Counter(
+        item["type"] for item in fixture_data("records.json")
+    )
+    assert len({item.id for item in records}) == len(fixture_data("records.json"))
     for item in records:
         assert item.source.source_id
         assert item.source.snippet
@@ -66,9 +72,9 @@ def test_assignments():
     response = client.get("/api/assignments")
     assert response.status_code == 200
     assignments = TypeAdapter(list[Assignment]).validate_python(response.json())
-    assert Counter(item.status for item in assignments) == {
-        "completed": 1, "active": 1, "offered": 1,
-    }
+    assert Counter(item.status for item in assignments) == Counter(
+        item["status"] for item in fixture_data("assignments.json")
+    )
     record_ids = {item["id"] for item in client.get("/api/records").json()}
     assert all(set(item.source_record_ids) <= record_ids for item in assignments)
 
@@ -78,7 +84,7 @@ def test_assessment():
     assert response.status_code == 200
     assessment = Assessment.model_validate(response.json())
     assert assessment.status == "needs_attention"
-    assert len(assessment.findings) == 1
+    assert len(assessment.findings) == len(fixture_data("assessment.json")["findings"])
     assert assessment.findings[0].rule_id == "R1"
     assert assessment.findings[0].severity == "warn"
     record_ids = {item["id"] for item in client.get("/api/records").json()}
@@ -90,5 +96,7 @@ def test_ledger_monthly():
     response = client.get("/api/ledger/monthly")
     assert response.status_code == 200
     rows = TypeAdapter(list[MonthlyLedgerRow]).validate_python(response.json())
-    assert [row.month for row in rows] == [f"2026-{month:02d}" for month in range(1, 13)]
+    assert [row.month for row in rows] == [
+        row["month"] for row in fixture_data("ledger_monthly.json")
+    ]
     assert [row.missing for row in rows if row.missing] == [["rent"]]
