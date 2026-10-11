@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { ChevronDown, Inbox, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
-import { useRecords } from "../api/hooks";
+import { useProfile, useRecords } from "../api/hooks";
 import type {
   Factor,
   LedgerRecord,
@@ -24,6 +24,7 @@ import {
   ProviderTag,
   StatusBadge,
 } from "../components/ui";
+import { groupEvidence } from "../lib/evidence";
 import {
   FACTOR_SHORT,
   PROVIDER_LABEL,
@@ -99,6 +100,7 @@ export function Records() {
   };
   const reviewOnly = params.get("review") === "1";
   const q = useRecords(filters);
+  const homeAddress = useProfile().data?.home_address;
 
   const setFilter = (k: string, v: string) => {
     const next = new URLSearchParams(params);
@@ -114,8 +116,11 @@ export function Records() {
     const filtered = reviewOnly
       ? list.filter((r) => r.needs_review && r.user_status === "pending")
       : list;
-    return [...filtered].sort((a, b) => b.date.localeCompare(a.date));
-  }, [q.data, query, reviewOnly]);
+    const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
+    // A payment found in both the inbox and the bank is one row with two sources.
+    return groupEvidence(sorted, homeAddress);
+  }, [q.data, query, reviewOnly, homeAddress]);
+  const alsoInBank = rows.reduce((n, row) => n + row.also.length, 0);
 
   const activeFilters =
     Object.values(filters).filter(Boolean).length + (reviewOnly ? 1 : 0) + (query ? 1 : 0);
@@ -134,7 +139,7 @@ export function Records() {
           return n;
         });
       } else if (e.key === "Enter" && cursor >= 0 && rows[cursor]) {
-        openRecord(rows[cursor].id);
+        openRecord(rows[cursor].record.id);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -149,7 +154,7 @@ export function Records() {
     <div className="space-y-5">
       <PageHeader
         title="Records"
-        description="Every piece of evidence the agent filed, with the source it came from. Open a record to confirm, reject or edit it."
+        description="Every piece of evidence the agent filed, with the source it came from. A payment found in both your email and your bank is shown once, with both sources. Open a record to confirm, reject or edit it."
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -289,7 +294,7 @@ export function Records() {
                 </tr>
               </thead>
               <tbody ref={tableRef} className="divide-y divide-line">
-                {rows.map((r, i) => (
+                {rows.map(({ record: r, also }, i) => (
                   <tr
                     key={r.id}
                     onClick={() => openRecord(r.id)}
@@ -335,7 +340,23 @@ export function Records() {
                       )}
                     </td>
                     <td className="py-2.5">
-                      <ProviderTag provider={r.source.provider} />
+                      <span className="flex items-center gap-1.5">
+                        <ProviderTag provider={r.source.provider} />
+                        {also.map((other) => (
+                          <button
+                            key={other.id}
+                            type="button"
+                            title="Also found in your bank. Open that transaction."
+                            className="rounded-md focus-visible:outline-offset-2"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openRecord(other.id);
+                            }}
+                          >
+                            <ProviderTag provider={other.source.provider} compact />
+                          </button>
+                        ))}
+                      </span>
                     </td>
                     <td className="py-2.5">
                       <Confidence value={r.confidence} />
@@ -353,6 +374,7 @@ export function Records() {
           <div className="flex items-center justify-between border-t border-line bg-canvas/60 px-5 py-2.5 text-xs text-ink-3">
             <span className="tnum">
               {rows.length} record{rows.length === 1 ? "" : "s"}
+              {alsoInBank ? ` · ${alsoInBank} also matched to a bank transaction` : ""}
             </span>
             <span className="hidden items-center gap-1.5 sm:flex">
               <Kbd>j</Kbd> <Kbd>k</Kbd> to move · <Kbd>Enter</Kbd> to open · <Kbd>Esc</Kbd> to close
