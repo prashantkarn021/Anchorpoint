@@ -37,7 +37,7 @@ def wait_for_callback() -> dict:
     done = threading.Event()
 
     class Handler(BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802 -- name fixed by BaseHTTPRequestHandler
+        def do_GET(self) -> None:
             url = urlparse(self.path)
             if url.path != "/api/oauth/callback":
                 self.send_error(404)
