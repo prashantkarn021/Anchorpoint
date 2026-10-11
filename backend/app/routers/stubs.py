@@ -5,9 +5,7 @@ from fastapi import APIRouter
 from pydantic import TypeAdapter
 
 from backend.app.models import (
-    Assessment,
     Assignment,
-    MonthlyLedgerRow,
     Profile,
 )
 
@@ -28,13 +26,3 @@ def profile() -> Profile:
 @router.get("/assignments", response_model=list[Assignment])
 def assignments() -> list[Assignment]:
     return load_fixture("assignments.json", TypeAdapter(list[Assignment]))
-
-
-@router.get("/assessment", response_model=Assessment)
-def assessment() -> Assessment:
-    return load_fixture("assessment.json", TypeAdapter(Assessment))
-
-
-@router.get("/ledger/monthly", response_model=list[MonthlyLedgerRow])
-def ledger_monthly() -> list[MonthlyLedgerRow]:
-    return load_fixture("ledger_monthly.json", TypeAdapter(list[MonthlyLedgerRow]))

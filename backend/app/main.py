@@ -3,6 +3,7 @@ import os
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.routers.assessment import router as assessment_router
 from backend.app.routers.connections import router as connections_router
 from backend.app.routers.demo import router as demo_router
 from backend.app.routers.oauth import router as oauth_router
@@ -34,6 +35,7 @@ app.include_router(api)
 app.include_router(oauth_router)
 app.include_router(connections_router)
 app.include_router(records_router)
+app.include_router(assessment_router)
 app.include_router(demo_router)
 app.include_router(sync_router)
 app.include_router(stubs_router)
