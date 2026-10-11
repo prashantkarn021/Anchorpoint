@@ -63,7 +63,7 @@ Four rules shaped the design, and the code holds to all of them:
 | Rules, scoring, verdicts | **Real**, deterministic, tested |
 | The ledger, audit trail, activity feed | **Real**, SQLite on the server |
 | People, merchants, addresses, emails, transactions | **Synthetic** |
-| Google Calendar connector | Built and merged; a late addition, lightly exercised |
+| Google Calendar connector | **Real**, read-only, against the demo account's calendar |
 | Assignment history (dates, pay) | A fixed list for the demo persona, not yet derived from her emails |
 | CPA packet export, receipt uploads, more personas | **Not built** (see Roadmap) |
 | Sign-in | None: one demo user |
@@ -222,6 +222,8 @@ docker compose run --rm -p 127.0.0.1:8765:8765 -e PYTHONPATH=/srv \
     -v ./scripts:/srv/scripts -v /path/to/seeder_client.json:/secrets/seeder.json:ro \
     api python scripts/seed_gmail.py --client /secrets/seeder.json --clear
 ```
+
+**Never revoke a Google grant for the demo account from a script or from the account's security page.** Google keeps one grant per user per Cloud project, shared by every OAuth client in it: revoking the seeder's token also disconnects the server's Gmail, Calendar and live-email grants. The seed scripts therefore do not revoke.
 
 The inbox holds evidence, about fifty noise emails, two near-misses (a friend's bill, a roommate's receipt) and one attack email. Bank data comes from `backend/app/seed/bank.py`, which the bank connection plants in the Plaid sandbox.
 

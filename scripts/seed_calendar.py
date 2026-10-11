@@ -1,7 +1,8 @@
 """Fill the demo account's Google Calendar from a persona spec.
 
 Uses the same *seeder* OAuth client (Desktop app type) as seed_gmail.py, never the app's web
-client. Sign in as the demo account. Tokens stay in memory and the grant is revoked at the end.
+client. Sign in as the demo account. Tokens stay in memory for the run. The grant is not
+revoked: that would also revoke the server's grants (see the note in main).
 From the repo root:
 
     docker compose run --rm -p 127.0.0.1:8765:8765 -e PYTHONPATH=/srv \
@@ -49,8 +50,9 @@ def main() -> None:
         if args.clear:
             print(f"deleted {writer.clear()} previously seeded event(s)", flush=True)
         print(f"inserted {len(writer.insert_all(seed))} events", flush=True)
-        writer.oauth.revoke()
-        print("seeder grant revoked")
+        # Deliberately no revoke. Google keeps one grant per user per Cloud project, shared by
+        # every OAuth client in it, so revoking the seeder's token also revokes the server's
+        # Gmail, Calendar and inject grants. The token is in memory only and dies with this run.
     except GoogleAuthError as exc:
         sys.exit(f"SEED FAILED: {exc}")
     print("SEED DONE")
