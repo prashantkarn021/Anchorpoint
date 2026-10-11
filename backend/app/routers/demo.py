@@ -1,7 +1,8 @@
-"""Demo controls. POST /api/demo/inject drops a fresh synthetic email into the demo inbox."""
+"""Demo controls: inject a fresh synthetic email, or reset the ledger and read everything again."""
 
 import logging
 import os
+import threading
 from datetime import datetime
 from typing import Annotated
 
@@ -9,6 +10,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from backend.app.connectors.gmail import API, GmailConnector
 from backend.app.connectors.google_oauth import GoogleAuthError, GoogleOAuth
+from backend.app.ledger import Ledger
+from backend.app.routers import sync
+from backend.app.routers.records import get_ledger, seed_fixtures
 from backend.app.seed.emails import CENTRAL, inject_emails
 from backend.app.seed.gmail_writer import GmailWriter
 from backend.app.seed.persona import Persona
@@ -66,3 +70,31 @@ def inject(
             for message_id, email in zip(ids, emails, strict=True)
         ],
     }
+
+
+def _sync_in_background() -> None:
+    def run() -> None:
+        try:
+            sync.run_sync()
+        except Exception as exc:  # noqa: BLE001 -- nothing is waiting on this thread
+            log.warning("sync after reset failed: %s", type(exc).__name__)
+
+    threading.Thread(target=run, name="reset-sync", daemon=True).start()
+
+
+@router.post("/reset")
+def reset(ledger: Annotated[Ledger, Depends(get_ledger)]) -> dict:
+    """Empty the ledger and the sync's memory, then read every connected account again.
+
+    Connections survive: tokens live in the vault, which this does not touch. The refill runs
+    in the background, so records reappear over the next seconds instead of holding the request.
+    """
+    try:
+        with sync.paused():  # a sync mid-run would write into the ledger we are emptying
+            records, events = ledger.clear()
+            sync.forget()
+            seeded = seed_fixtures(ledger)
+    except TimeoutError:
+        raise HTTPException(status_code=409, detail="A sync is still running; try again shortly") from None
+    _sync_in_background()
+    return {"cleared": {"records": records, "events": events}, "fixtures_loaded": seeded, "sync": "started"}

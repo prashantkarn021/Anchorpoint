@@ -166,6 +166,16 @@ class Ledger:
             row = connection.execute("SELECT * FROM records WHERE id = ?", (id,)).fetchone()
             return self._read_record(connection, row)
 
+    def clear(self) -> tuple[int, int]:
+        """Delete every record and audit event; returns how many of each. For the demo reset.
+
+        Only this ledger's tables: the token vault and sync state share the file and are kept.
+        """
+        with self._connection() as connection:
+            records = connection.execute("DELETE FROM records").rowcount
+            events = connection.execute("DELETE FROM audit_events").rowcount
+            return records, events
+
     def add_event(self, event: AuditEvent) -> None:
         if event.record_id is not None:
             raise ValueError("add_event requires an event without a record_id")
