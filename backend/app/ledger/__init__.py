@@ -143,9 +143,12 @@ class Ledger:
             edits = edits or {}
             if set(edits) - EDITABLE_FIELDS:
                 raise ValueError("Edits contain protected fields")
-            if user_status is not None and user_status not in ("confirmed", "rejected"):
-                raise ValueError("User status must be confirmed or rejected")
+            if user_status is not None and user_status not in ("confirmed", "rejected", "pending"):
+                raise ValueError("User status must be confirmed, rejected or pending")
             values = self._read_record(connection, row).model_dump(exclude={"history"})
+            edits = {key: value for key, value in edits.items() if values[key] != value}
+            if user_status == values["user_status"]:
+                user_status = None
             values.update(edits)
             if user_status is not None:
                 values["user_status"] = user_status
@@ -153,7 +156,7 @@ class Ledger:
             if edits or user_status is not None:
                 self._write_record(connection, record, created=False)
             for action, detail in (
-                (user_status, "User changed record status."),
+                ("edited" if user_status == "pending" else user_status, "User changed record status."),
                 ("edited" if edits else None, "User edited fields: " + ", ".join(sorted(edits))),
             ):
                 if action is not None:
@@ -162,6 +165,16 @@ class Ledger:
                     ))
             row = connection.execute("SELECT * FROM records WHERE id = ?", (id,)).fetchone()
             return self._read_record(connection, row)
+
+    def clear(self) -> tuple[int, int]:
+        """Delete every record and audit event; returns how many of each. For the demo reset.
+
+        Only this ledger's tables: the token vault and sync state share the file and are kept.
+        """
+        with self._connection() as connection:
+            records = connection.execute("DELETE FROM records").rowcount
+            events = connection.execute("DELETE FROM audit_events").rowcount
+            return records, events
 
     def add_event(self, event: AuditEvent) -> None:
         if event.record_id is not None:

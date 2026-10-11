@@ -240,14 +240,21 @@ export const api = {
       fixtureStore.record(id),
     ),
 
-  patchRecord: (id: string, patch: RecordPatch) =>
-    request<LedgerRecord>(
+  patchRecord: (id: string, patch: RecordPatch) => {
+    const { user_status, ...edits } = patch;
+    // The UI and fixture store use flat edits; the persisted API nests them.
+    const body = {
+      ...(user_status !== undefined ? { user_status } : {}),
+      ...(Object.keys(edits).length ? { edits } : {}),
+    };
+    return request<LedgerRecord>(
       "records.patch",
       "PATCH",
       `/records/${encodeURIComponent(id)}`,
       () => fixtureStore.patchRecord(id, patch),
-      patch,
-    ),
+      body,
+    );
+  },
 
   uploadDocuments: (files: File[]) => {
     const form = new FormData();
