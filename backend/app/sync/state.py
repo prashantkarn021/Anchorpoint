@@ -87,7 +87,9 @@ class SyncState:
                 (provider, source_id, outcome),
             )
 
-    def clear(self) -> None:
+    def clear(self, provider: str | None = None) -> None:
+        """Forget everything, or just one provider."""
+        where, params = (" WHERE provider = ?", (provider,)) if provider else ("", ())
         with self._connection() as connection:
-            connection.execute("DELETE FROM sync_cursor")
-            connection.execute("DELETE FROM sync_seen")
+            connection.execute("DELETE FROM sync_cursor" + where, params)
+            connection.execute("DELETE FROM sync_seen" + where, params)

@@ -7,7 +7,6 @@ from pydantic import TypeAdapter
 from backend.app.models import (
     Assessment,
     Assignment,
-    Connection,
     MonthlyLedgerRow,
     Profile,
 )
@@ -24,11 +23,6 @@ def load_fixture(filename: str, adapter: TypeAdapter[T]) -> T:
 @router.get("/profile", response_model=Profile)
 def profile() -> Profile:
     return load_fixture("profile.json", TypeAdapter(Profile))
-
-
-@router.get("/connections", response_model=list[Connection])
-def connections() -> list[Connection]:
-    return load_fixture("connections.json", TypeAdapter(list[Connection]))
 
 
 @router.get("/assignments", response_model=list[Assignment])
