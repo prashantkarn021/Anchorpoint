@@ -3,6 +3,7 @@ uvicorn[standard]>=0.30,<1
 pytest>=8,<9
 sse-starlette>=2,<3
 cryptography>=43
+httpx2>=2,<3
 strands-agents[openai]>=1.59,<2
 plaid-python>=45,<46
 pypdf>=6,<7

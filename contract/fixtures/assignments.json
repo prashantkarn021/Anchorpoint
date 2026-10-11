@@ -1,0 +1,87 @@
+[
+  {
+    "id": "a1",
+    "facility": "Fictional Saguaro Ridge Medical Center",
+    "metro": {
+      "name": "Tucson",
+      "state": "AZ",
+      "high_cost": false
+    },
+    "start": "2025-08-25",
+    "end": "2025-11-24",
+    "status": "completed",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  },
+  {
+    "id": "a2",
+    "facility": "Fictional Front Range Regional Hospital",
+    "metro": {
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
+    },
+    "start": "2025-12-08",
+    "end": "2026-03-09",
+    "status": "completed",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  },
+  {
+    "id": "a3",
+    "facility": "Fictional Front Range Regional Hospital",
+    "metro": {
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
+    },
+    "start": "2026-03-16",
+    "end": "2026-06-15",
+    "status": "completed",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  },
+  {
+    "id": "a4",
+    "facility": "Fictional Front Range Regional Hospital",
+    "metro": {
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
+    },
+    "start": "2026-06-22",
+    "end": "2026-10-19",
+    "status": "active",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  },
+  {
+    "id": "a5",
+    "facility": "Fictional Front Range Regional Hospital",
+    "metro": {
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
+    },
+    "start": "2026-10-19",
+    "end": "2027-02-15",
+    "status": "offered",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1750,
+    "weekly_mie_stipend": 630,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  }
+]

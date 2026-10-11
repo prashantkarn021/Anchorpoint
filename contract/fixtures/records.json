@@ -1,0 +1,322 @@
+[
+  {
+    "id": "lease-1",
+    "type": "lease",
+    "factor": 2,
+    "date": "2026-01-01",
+    "period_start": "2026-01-01",
+    "period_end": "2026-12-31",
+    "amount": 1425,
+    "payee": "Fictional Lantern Homes",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-lease-1",
+      "received_at": "2026-01-01T12:00:00Z",
+      "snippet": "Maya Torres rents her Kansas City home; her family lives there year-round.",
+      "deep_link": "https://sources.example/fixtures/lease-1",
+      "content_hash": "8fb7ce91dd177c5d7623e608528796974ae0043b80438e6ff112ed240fd49e49"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-01-01T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "lease-1",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "rent-09",
+    "type": "rent_payment",
+    "factor": 2,
+    "date": "2026-09-01",
+    "period_start": "2026-09-01",
+    "period_end": "2026-09-30",
+    "amount": 1425,
+    "payee": "Fictional Lantern Homes",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "bank",
+      "source_id": "synthetic-rent-09",
+      "received_at": "2026-09-01T12:00:00Z",
+      "snippet": "Synthetic September rent payment for Maya Torres.",
+      "deep_link": "https://sources.example/fixtures/rent-09",
+      "content_hash": "b3fe7c5e4c172bc177792fd0833d1f47b52254e9c0d574ad2a034bb20202452b"
+    },
+    "extracted_by": "plaid",
+    "history": [
+      {
+        "ts": "2026-09-01T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "rent-09",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "rent-10",
+    "type": "rent_payment",
+    "factor": 2,
+    "date": "2026-10-01",
+    "period_start": "2026-10-01",
+    "period_end": "2026-10-31",
+    "amount": 1425,
+    "payee": "Fictional Lantern Homes",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "bank",
+      "source_id": "synthetic-rent-10",
+      "received_at": "2026-10-01T12:00:00Z",
+      "snippet": "Synthetic October rent payment for Maya Torres.",
+      "deep_link": "https://sources.example/fixtures/rent-10",
+      "content_hash": "92423c4d9ade5c185d011da569173c48610545db9795b34fecacf1273ee174e2"
+    },
+    "extracted_by": "plaid",
+    "history": [
+      {
+        "ts": "2026-10-01T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "rent-10",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "utility-09",
+    "type": "utility_bill",
+    "factor": 2,
+    "date": "2026-09-05",
+    "period_start": "2026-09-01",
+    "period_end": "2026-09-30",
+    "amount": 118,
+    "payee": "Fictional Lantern Utilities",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-utility-09",
+      "received_at": "2026-09-05T12:00:00Z",
+      "snippet": "Synthetic paid September utility bill for the Kansas City home.",
+      "deep_link": "https://sources.example/fixtures/utility-09",
+      "content_hash": "c3899ef1a303b77d11258c33964384c618072a0e72f9c9a31316be99c89d18d8"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-09-05T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "utility-09",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "utility-10",
+    "type": "utility_bill",
+    "factor": 2,
+    "date": "2026-10-05",
+    "period_start": "2026-10-01",
+    "period_end": "2026-10-31",
+    "amount": 124,
+    "payee": "Fictional Lantern Utilities",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-utility-10",
+      "received_at": "2026-10-05T12:00:00Z",
+      "snippet": "Synthetic paid October utility bill for the Kansas City home.",
+      "deep_link": "https://sources.example/fixtures/utility-10",
+      "content_hash": "e5c6218af7b0f49d311c5de58c1faee1eba9600f486d899d68b735069acd5fd1"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-10-05T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "utility-10",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "trip-home-1",
+    "type": "trip_home",
+    "factor": 3,
+    "date": "2026-03-12",
+    "period_start": "2026-03-12",
+    "period_end": "2026-03-12",
+    "amount": 96,
+    "payee": "Fictional Prairie Transit",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-trip-home-1",
+      "received_at": "2026-03-12T12:00:00Z",
+      "snippet": "Synthetic trip: Maya Torres returned to her Kansas City home to visit family on 2026-03-12.",
+      "deep_link": "https://sources.example/fixtures/trip-home-1",
+      "content_hash": "5f6c26fab2888aa8f7ff4fa3322a1f08b18f7dd8d51841c5bdf9b639f1d873ae"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-03-12T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "trip-home-1",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "paystub-1",
+    "type": "paystub",
+    "factor": null,
+    "date": "2026-10-09",
+    "period_start": "2026-10-05",
+    "period_end": "2026-10-11",
+    "amount": 2657,
+    "payee": "Fictional Lantern Nurse Staffing",
+    "address": null,
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-paystub-1",
+      "received_at": "2026-10-09T12:00:00Z",
+      "snippet": "Maya Torres, ICU travel nurse in Denver: weekly taxable wage $1,152; lodging $1,050; meals $455.",
+      "deep_link": "https://sources.example/fixtures/paystub-1",
+      "content_hash": "632c81764cce3d2e7b4ba028d523f5c3945cfde47f7543490a21a3919d68c770"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-10-09T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "paystub-1",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "contract-offer-1",
+    "type": "contract_offer",
+    "factor": null,
+    "date": "2026-10-08",
+    "period_start": "2026-10-19",
+    "period_end": "2027-02-15",
+    "amount": null,
+    "payee": "Fictional Front Range Regional Hospital",
+    "address": null,
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-contract-offer-1",
+      "received_at": "2026-10-08T12:00:00Z",
+      "snippet": "Synthetic Denver ICU extension offer for Maya Torres, 2026-10-19 to 2027-02-15: weekly taxable wage $1,152; lodging $1,750; meals $630.",
+      "deep_link": "https://sources.example/fixtures/contract-offer-1",
+      "content_hash": "9815502ea9dede9e8c9aa38689789a1fcf5b5f82101e0b484a175389b2da7cd2"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-10-08T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "contract-offer-1",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "trip-home-2",
+    "type": "trip_home",
+    "factor": 3,
+    "date": "2026-06-18",
+    "period_start": "2026-06-18",
+    "period_end": "2026-06-18",
+    "amount": 96,
+    "payee": "Fictional Prairie Transit",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-trip-home-2",
+      "received_at": "2026-06-18T12:00:00Z",
+      "snippet": "Synthetic trip: Maya Torres returned to her Kansas City home to visit family on 2026-06-18.",
+      "deep_link": "https://sources.example/fixtures/trip-home-2",
+      "content_hash": "ae777d19414b9f7a9941e77ac6d85e84b6e8adc9be7c1727c5f5d5f74262bf21"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-06-18T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "trip-home-2",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "trip-home-3",
+    "type": "trip_home",
+    "factor": 3,
+    "date": "2026-08-29",
+    "period_start": "2026-08-29",
+    "period_end": "2026-08-29",
+    "amount": 96,
+    "payee": "Fictional Prairie Transit",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-trip-home-3",
+      "received_at": "2026-08-29T12:00:00Z",
+      "snippet": "Synthetic trip: Maya Torres returned to her Kansas City home to visit family on 2026-08-29.",
+      "deep_link": "https://sources.example/fixtures/trip-home-3",
+      "content_hash": "9beb6ce58cfe78d72d56b1311e4dd9ff1bd816bea63049b16395d5c132f27572"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-08-29T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "trip-home-3",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  }
+]
