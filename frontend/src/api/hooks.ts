@@ -107,8 +107,11 @@ export function useSync() {
 export function useUpload() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (files: File[]) => api.uploadDocuments(files),
-    onSuccess: () => invalidateLedger(qc),
+    mutationFn: (files: File[]) => api.uploadReceipts(files),
+    onSuccess: () => {
+      invalidateLedger(qc);
+      void qc.invalidateQueries({ queryKey: qk.activity });
+    },
   });
 }
 

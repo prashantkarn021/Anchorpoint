@@ -463,8 +463,8 @@ export function Connections() {
       )}
 
       <p className={clsx("text-xs text-ink-4")}>
-        Coming later: Outlook, Google Drive, payroll portals and receipt uploads use the same
-        connector. Web apps can't read SMS.
+        Coming later: Outlook, Google Drive and payroll portals use the same connector. Web apps
+        can't read SMS.
       </p>
 
       <ConsentModal provider={consent} onClose={() => setConsent(null)} />

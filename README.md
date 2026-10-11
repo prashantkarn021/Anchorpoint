@@ -65,7 +65,8 @@ Four rules shaped the design, and the code holds to all of them:
 | People, merchants, addresses, emails, transactions | **Synthetic** |
 | Google Calendar connector | **Real**, read-only, against the demo account's calendar |
 | Assignment history (dates, pay) | A fixed list for the demo persona, not yet derived from her emails |
-| CPA packet export, receipt uploads, more personas | **Not built** (see Roadmap) |
+| Receipt uploads and text export | **Built**, requires configured inference; images require a vision-capable model |
+| CPA packet export, more personas | **Not built** (see Roadmap) |
 | Sign-in | None: one demo user |
 
 ## What you see
@@ -227,6 +228,32 @@ docker compose run --rm -p 127.0.0.1:8765:8765 -e PYTHONPATH=/srv \
 
 The inbox holds evidence, about fifty noise emails, two near-misses (a friend's bill, a roommate's receipt) and one attack email. Bank data comes from `backend/app/seed/bank.py`, which the bank connection plants in the Plaid sandbox.
 
+## Receipt uploads
+
+On **Records**, choose **Upload receipts** and select or drag receipt photos or PDFs.
+JPEG, PNG, WEBP and PDF are supported: up to 10 files, 10 MB each, and 5 pages per PDF.
+Text PDFs use the existing guarded extraction pipeline. Photos and scanned PDFs first
+use vision to transcribe visible text, then use that same pipeline. Set `VISION_MODEL_ID`
+to an image-capable model on `INFERENCE_BASE_URL`, or leave it empty if `MODEL_ID`
+already supports images. The existing inference credentials are used.
+
+Accepted receipt records are pending; photo and scanned-PDF records require review.
+Duplicate files return their existing records and preserve user edits. Unreadable,
+irrelevant or suspicious content creates no record and is recorded in Agent activity.
+Only extracted fields, a short snippet, source hash and audit events are stored;
+original files and full transcriptions are discarded. HEIC is not supported; export
+the receipt as JPEG or PNG first. A model failure is reported without fixture fallback.
+
+The upload result shows the extracted text and offers a `.txt` download. Basic checks
+compare the extracted merchant, date and total to the printed text, check an explicit
+subtotal/tax/tip/discount breakdown when complete, and look for matching bank evidence.
+Missing or inconsistent details and sample/void markings require review. **Authenticity
+is always unverified:** a photo and these consistency checks cannot prove a genuine
+receipt or transaction. This check does not create or change tax-risk findings.
+Full text exists only in the response/browser for review and download, not in the ledger.
+API callers can submit multipart `include_text=true` to receive `{records, receipts}`;
+the default response remains `Record[]` for existing clients.
+
 ## Deploy
 
 `make deploy` runs `scripts/deploy.sh`: it backs up the SQLite file, pulls `main` on the server, rebuilds, reconnects the bank and runs the smoke test against `BASE_URL`. It prints the commit it deployed.
@@ -244,7 +271,7 @@ The bank connection and the extraction cache are held in memory, so both are los
 
 ## Roadmap
 
-CPA packet export with an evidence index. Receipt and screenshot uploads with image reading. Assignments derived from email. The remaining rules. More connectors (Outlook, Drive, payroll portals) behind the same interface. Multi-user accounts. Google restricted-scope verification, key management, retention policy and a SOC 2 path. An employer and staffing-agency view, since they carry exposure on per diems too.
+CPA packet export with an evidence index. Screenshot uploads with image reading. Assignments derived from email. The remaining rules. More connectors (Outlook, Drive, payroll portals) behind the same interface. Multi-user accounts. Google restricted-scope verification, key management, retention policy and a SOC 2 path. An employer and staffing-agency view, since they carry exposure on per diems too.
 
 ## Team
 

@@ -193,3 +193,23 @@ export interface PacketResponse {
 }
 
 export type PersonaId = "maya" | "sam" | "luis";
+
+export interface ReceiptReadout {
+  source_id: string;
+  text: string | null;
+  status:
+    | "checks_passed"
+    | "needs_review"
+    | "not_receipt"
+    | "unreadable"
+    | "ignored_suspicious"
+    | "previously_uploaded";
+  authenticity: "unverified";
+  messages: string[];
+  bank_record_ids: string[];
+}
+
+export interface ReceiptUploadResult {
+  records: LedgerRecord[];
+  receipts: ReceiptReadout[];
+}

@@ -50,14 +50,14 @@ def _event(item: RawItem, action: str, detail: str) -> AuditEvent:
                       detail=f"{item.provider}:{item.source_id}: {detail}")
 
 
-def ingest(item: RawItem, profile: Profile, budget: CallBudget) -> Ingested:
+def ingest(item: RawItem, profile: Profile, budget: CallBudget, *, use_cache: bool = True) -> Ingested:
     if item.provider == "bank":
         raise ValueError("bank items skip the LLM; map them in sync/")
     if looks_injected(item_text(item)):
         # free code check first: no model request, works even with the model down or no budget
         return Ingested(events=[_event(item, "ignored_suspicious", "instructions to an AI were ignored")])
     try:
-        t = triage(item, budget)
+        t = triage(item, budget) if use_cache else triage(item, budget, use_cache=False)
     except Exception as e:  # noqa: BLE001 - any model failure: log, retry next sync
         return _failed(item, "triage", e)
 
@@ -69,7 +69,10 @@ def ingest(item: RawItem, profile: Profile, budget: CallBudget) -> Ingested:
     # ponytail: if the budget runs out here, this item's triage requests were spent for nothing;
     # it is re-triaged next sync (a triage cache would save that)
     try:
-        candidate, cached = extractor.extract(item, profile, t.doc_type, budget)
+        if use_cache:
+            candidate, cached = extractor.extract(item, profile, t.doc_type, budget)
+        else:
+            candidate, cached = extractor.extract(item, profile, t.doc_type, budget, use_cache=False)
     except Exception as e:  # noqa: BLE001
         return _failed(item, "extraction", e)
     return Ingested(candidate=candidate, cached=cached)
