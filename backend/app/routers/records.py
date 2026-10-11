@@ -24,14 +24,22 @@ Factor = Annotated[int, Field(strict=True, ge=1, le=3)]
 _ledger_lock = Lock()
 
 
+def seed_fixtures(ledger: Ledger) -> int:
+    """Fill an empty ledger with the fixture records when SEED_FIXTURES=1. Returns how many."""
+    if os.getenv("SEED_FIXTURES", "1") != "1" or ledger.list_records():
+        return 0
+    fixtures = Path(__file__).resolve().parents[3] / "contract" / "fixtures" / "records.json"
+    items = TypeAdapter(list[Record]).validate_json(fixtures.read_text(encoding="utf-8"))
+    for item in items:
+        ledger.upsert_record(item)
+    return len(items)
+
+
 @cache
 def _ledger_for_path(path: str) -> Ledger:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     ledger = Ledger(path)
-    if os.getenv("SEED_FIXTURES", "1") == "1" and not ledger.list_records():
-        fixtures = Path(__file__).resolve().parents[3] / "contract" / "fixtures" / "records.json"
-        for item in TypeAdapter(list[Record]).validate_json(fixtures.read_text(encoding="utf-8")):
-            ledger.upsert_record(item)
+    seed_fixtures(ledger)
     return ledger
 
 

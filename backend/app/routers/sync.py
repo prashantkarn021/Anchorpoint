@@ -3,6 +3,7 @@
 import logging
 import os
 import threading
+from contextlib import contextmanager
 from functools import cache
 
 from fastapi import APIRouter, HTTPException
@@ -51,6 +52,22 @@ def _ledger() -> Ledger:
 @cache
 def _state() -> SyncState:
     return SyncState(database_path())
+
+
+@contextmanager
+def paused():
+    """Hold syncing off while the caller changes the ledger. Raises TimeoutError if one won't finish."""
+    if not _running.acquire(timeout=WAIT_FOR_RUNNING_SYNC_S):
+        raise TimeoutError("a sync is still running")
+    try:
+        yield
+    finally:
+        _running.release()
+
+
+def forget() -> None:
+    """Drop cursors and finished items, so the next sync reads everything again."""
+    _state().clear()
 
 
 def _profile() -> Profile:

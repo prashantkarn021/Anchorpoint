@@ -89,7 +89,8 @@ def sync_gmail(
 
     note = None
     if result.waiting:
-        reason = "request budget used up" if "deferred_call_cap" in waiting_reasons else "model unavailable"
+        # A dead model burns the budget on failed attempts, so an error outranks the cap.
+        reason = "model unavailable" if "model_error" in waiting_reasons else "request budget used up"
         note = f"{provider}: {reason}"
         if state.note_changed(provider, note):
             _event(ledger, "deferred", f"{note}; {result.waiting} item(s) wait for the next sync")
