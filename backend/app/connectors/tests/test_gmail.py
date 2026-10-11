@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
+from backend.app.connectors import gmail
 from backend.app.connectors.gmail import API, BACKFILL_WINDOW, GmailConnector
 from backend.app.connectors.google_oauth import REVOKE_URL, TOKEN_URL, GoogleAuthError
 
@@ -103,6 +104,7 @@ def test_start_auth_asks_for_read_only_offline_access():
     assert query["prompt"] == ["consent"]
     assert query["redirect_uri"] == [CONFIG["redirect_uri"]]
     assert query["state"][0].startswith("gmail.")
+    assert "include_granted_scopes" not in query
 
 
 def test_start_auth_needs_client_config(monkeypatch):
@@ -145,6 +147,14 @@ def test_finish_auth_rejects_wrong_state():
     with pytest.raises(GoogleAuthError):
         connector.finish_auth({"code": "auth-code", "state": "gmail.forged"})
     assert store.get("gmail:tokens") is None
+
+
+def test_finish_auth_rejects_non_ascii_state_without_crashing():
+    connector = GmailConnector(MemoryStore(), FakeGoogle(), **CONFIG)
+    connector.start_auth()
+
+    with pytest.raises(GoogleAuthError):
+        connector.finish_auth({"code": "auth-code", "state": "gmail.é中"})
 
 
 def test_finish_auth_rejects_callback_without_start():
@@ -196,6 +206,19 @@ def test_fetch_since_uses_cursor_and_keeps_it_when_nothing_is_new():
     assert items == []
     assert cursor == "1760000200"
     assert google.calls[-1][2]["q"].endswith("after:1760000200")
+
+
+def test_fetch_since_over_the_cap_takes_the_oldest_and_stops_the_cursor_there(monkeypatch):
+    monkeypatch.setattr(gmail, "MAX_ITEMS", 2)
+    google = FakeGoogle(  # Gmail lists newest first
+        [message(f"m{n}", 1_760_000_000 + n, "Statement", "body") for n in (4, 3, 2, 1)]
+    )
+    connector, _ = connected(google)
+
+    items, cursor = connector.fetch_since(None)
+
+    assert [item.source_id for item in items] == ["m1", "m2"]
+    assert cursor == "1760000002"
 
 
 def test_fetch_since_extracts_text_attachments():

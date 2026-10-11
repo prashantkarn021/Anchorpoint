@@ -3,6 +3,7 @@
 import json
 import os
 import secrets
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -79,6 +80,7 @@ class GoogleOAuth:
         self.client_id = client_id or os.getenv("GOOGLE_CLIENT_ID", "")
         self.client_secret = client_secret or os.getenv("GOOGLE_CLIENT_SECRET", "")
         self.redirect_uri = redirect_uri or os.getenv("OAUTH_REDIRECT_URI", "")
+        self._refresh_lock = threading.Lock()
 
     @property
     def _token_key(self) -> str:
@@ -105,7 +107,8 @@ class GoogleOAuth:
             # offline + consent is what makes Google return a refresh token
             "access_type": "offline",
             "prompt": "consent",
-            "include_granted_scopes": "true",
+            # No include_granted_scopes: each provider keeps its own grant, so revoking
+            # Gmail cannot take Calendar down with it and neither token carries both scopes.
         }
         return f"{AUTH_URL}?{urllib.parse.urlencode(query)}"
 
@@ -114,8 +117,9 @@ class GoogleOAuth:
         if params.get("error"):
             raise GoogleAuthError(f"Google sign-in was not completed: {params['error']}")
         expected = (self.store.get(self._state_key) or {}).get("state", "")
-        received = str(params.get("state", ""))
-        if not expected or not secrets.compare_digest(expected, received):
+        # Compared as bytes: compare_digest raises on non-ASCII str, and state is caller-supplied.
+        received = str(params.get("state", "")).encode()
+        if not expected or not secrets.compare_digest(expected.encode(), received):
             raise GoogleAuthError("OAuth state did not match; start the connection again")
         self.store.delete(self._state_key)
         if not params.get("code"):
@@ -146,28 +150,30 @@ class GoogleOAuth:
         return self.store.get(self._token_key) is not None
 
     def access_token(self) -> str:
-        tokens = self.store.get(self._token_key)
-        if not tokens:
-            raise GoogleAuthError(f"{self.provider} is not connected")
-        if tokens["expires_at"] - EXPIRY_MARGIN_S > time.time():
+        # The lock makes parallel fetch workers share one refresh instead of racing.
+        with self._refresh_lock:
+            tokens = self.store.get(self._token_key)
+            if not tokens:
+                raise GoogleAuthError(f"{self.provider} is not connected")
+            if tokens["expires_at"] - EXPIRY_MARGIN_S > time.time():
+                return tokens["access_token"]
+            if not tokens.get("refresh_token"):
+                raise GoogleAuthError(f"{self.provider} access expired; reconnect it")
+            reply = self.http(
+                "POST",
+                TOKEN_URL,
+                None,
+                {
+                    "refresh_token": tokens["refresh_token"],
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                    "grant_type": "refresh_token",
+                },
+                None,
+            )
+            tokens = self._tokens_from(reply, previous=tokens)
+            self.store.set(self._token_key, tokens)
             return tokens["access_token"]
-        if not tokens.get("refresh_token"):
-            raise GoogleAuthError(f"{self.provider} access expired; reconnect it")
-        reply = self.http(
-            "POST",
-            TOKEN_URL,
-            None,
-            {
-                "refresh_token": tokens["refresh_token"],
-                "client_id": self.client_id,
-                "client_secret": self.client_secret,
-                "grant_type": "refresh_token",
-            },
-            None,
-        )
-        tokens = self._tokens_from(reply, previous=tokens)
-        self.store.set(self._token_key, tokens)
-        return tokens["access_token"]
 
     def get(self, url: str, params: dict | None = None) -> dict:
         """Authorized GET against a Google API."""
