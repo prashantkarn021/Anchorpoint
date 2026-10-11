@@ -1,0 +1,72 @@
+{
+  "score": 67,
+  "status": "needs_attention",
+  "factors_met": 2,
+  "factors": [
+    {
+      "factor": 1,
+      "label": "Work near the home metro",
+      "score": 0,
+      "met": false,
+      "record_ids": [
+        "paystub-1"
+      ]
+    },
+    {
+      "factor": 2,
+      "label": "Maintain home housing expenses",
+      "score": 34,
+      "met": true,
+      "record_ids": [
+        "lease-1",
+        "rent-09",
+        "rent-10",
+        "utility-09",
+        "utility-10"
+      ]
+    },
+    {
+      "factor": 3,
+      "label": "Family and return visits at home",
+      "score": 33,
+      "met": true,
+      "record_ids": [
+        "trip-home-1",
+        "trip-home-2",
+        "trip-home-3"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "rule_id": "R1",
+      "severity": "warn",
+      "title": "June rent proof missing",
+      "detail": "Synthetic fixture finding: rent payment proof is missing for 2026-06.",
+      "record_ids": [],
+      "recommended_action": "Find the June rent receipt or bank transaction, or ask your CPA."
+    },
+    {
+      "rule_id": "R3",
+      "severity": "warn",
+      "title": "Return-trip proof missing",
+      "detail": "Synthetic fixture finding: proof of a trip home is missing for 2025-11-24 to 2025-12-08.",
+      "record_ids": [
+        "trip-home-1",
+        "trip-home-2"
+      ],
+      "recommended_action": "Find flight, mileage or fuel records proving a trip home during the gap, or ask your CPA."
+    },
+    {
+      "rule_id": "R5",
+      "severity": "warn",
+      "title": "Denver tenure approaching one year",
+      "detail": "Synthetic fixture finding: as of 2026-10-10, Maya has spent about 10 months in the same metro (Denver), approaching the one-year limit.",
+      "record_ids": [
+        "paystub-1",
+        "contract-offer-1"
+      ],
+      "recommended_action": "Review the Denver assignment timeline and proposed extension with your CPA."
+    }
+  ]
+}

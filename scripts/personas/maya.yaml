@@ -1,0 +1,300 @@
+# Persona: Maya Torres. Everything here is synthetic.
+# One generator reads this file and produces the Gmail inbox, the Plaid custom user,
+# the calendar and the uploads, so all four channels tell the same story.
+#
+# Dates are relative to the day the seed runs, never absolute:
+#   mo: N    the calendar month N months from the current one (mo: -1 = last month)
+#   wk: N    the Monday N weeks from this week's Monday
+#   day: N   day of the month (with mo) or days after that Monday (with wk)
+# The rules look at the previous 12 FULL months, i.e. mo -12 .. mo -1.
+
+profile:
+  id: maya-torres
+  name: Maya Torres
+  email_display_name: Maya Torres
+  occupation: ICU travel RN (W-2)
+  # R2 matches this string exactly (case and spacing aside). Every home-address
+  # document must print it verbatim; do not abbreviate or reformat it.
+  home_address: "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100"
+  home_metro: { name: Kansas City, state: MO, high_cost: false }
+  family_at_home: true
+
+# What the rules should conclude. The seed is wrong if these do not come out.
+expected:
+  findings:
+    R1: warn    # rent missing for exactly one month (mo -4)
+    R3: warn    # the Tucson -> Denver gap has no trip home
+    R5: warn    # about 10 months continuous in Denver today
+    R7: none    # current stipend is under the ceiling
+  clean: [R2, R4]   # utilities every month; license, registration, voter all on file
+  after_offer:
+    R5: high    # the offer takes Denver past 12 months
+    R7: warn    # offer stipend is above the federal ceiling
+  # Side effect to expect: R10 will also flag mo -4 (Denver lodging, no home rent).
+
+# --- Work history ------------------------------------------------------------
+# Denver is one continuous stay split into three contracts with a one-week break
+# between each. R5 has to treat those breaks as continuous time in the metro.
+assignments:
+  - id: tucson
+    facility: Fictional Saguaro Ridge Medical Center
+    metro: { name: Tucson, state: AZ, high_cost: false }
+    start: { wk: -58 }
+    end: { wk: -45 }
+    status: completed
+    distance_from_home_mi: 1190
+    pay: &current_pay
+      weekly_taxable_wage: 1152      # 36 h x $32
+      weekly_lodging_stipend: 1050
+      weekly_mie_stipend: 455        # total $215/day, under the $230 ceiling
+  - id: denver-1
+    facility: Fictional Front Range Regional Hospital
+    metro: &denver { name: Denver, state: CO, high_cost: true }   # verify against the IRS high-cost list
+    start: { wk: -43 }
+    end: { wk: -30 }
+    status: completed
+    distance_from_home_mi: 600
+    pay: *current_pay
+  - id: denver-2
+    facility: Fictional Front Range Regional Hospital
+    metro: *denver
+    start: { wk: -29 }
+    end: { wk: -16 }
+    status: completed
+    distance_from_home_mi: 600
+    pay: *current_pay
+  - id: denver-3
+    facility: Fictional Front Range Regional Hospital
+    metro: *denver
+    start: { wk: -15 }
+    end: { wk: 2 }
+    status: active
+    distance_from_home_mi: 600
+    pay: *current_pay
+
+# Pasted live in the demo; never seeded into the inbox.
+offer:
+  id: denver-4
+  facility: Fictional Front Range Regional Hospital
+  metro: *denver
+  start: { wk: 2 }
+  end: { wk: 19 }                    # 17 more weeks: 62 weeks in Denver in total
+  status: offered
+  distance_from_home_mi: 600
+  pay:
+    weekly_taxable_wage: 1152
+    weekly_lodging_stipend: 1750
+    weekly_mie_stipend: 630          # total $340/day (ceiling $329); M&IE $90/day (ceiling $86)
+
+# Gaps between contracts. R3 counts a gap of 3+ days between completed/active
+# assignments and wants a trip_home record dated inside it (boundary days included).
+# So every trip artefact (flight email, calendar event, airline and fuel transactions)
+# is dated between depart and return, and both of those sit inside the break.
+gaps:
+  # No trip: Maya drives straight to Denver. Nothing in this gap may look like a
+  # trip home, so everyday spending here is on the road and in Denver, never Kansas City.
+  - { after: tucson, before: denver-1, trip_home: false, everyday_city: Denver }   # R3 warn
+  - { after: denver-1, before: denver-2, trip_home: true,
+      depart: { wk: -30, day: 1 }, return: { wk: -30, day: 6 } }
+  - { after: denver-2, before: denver-3, trip_home: true,
+      depart: { wk: -16, day: 1 }, return: { wk: -16, day: 6 } }
+# One extra weekend trip home during denver-3, so there are three itineraries.
+# It is not in a gap, so R3 ignores it.
+extra_trips:
+  - { depart: { wk: -6, day: 4 }, return: { wk: -5, day: 0 } }
+
+# --- Fictional senders and merchants ------------------------------------------
+parties:
+  landlord:   { name: Westport Property Mgmt,       email: resident-portal@westportpm.example }
+  electric:   { name: Evergreen Power & Light,      email: billing@evergreenpl.example }
+  internet:   { name: PlainsNet,                    email: no-reply@plainsnet.example }
+  insurer:    { name: Heartland Mutual,             email: documents@heartlandmutual.example }
+  agency:     { name: Northbridge Staffing,         email: assignments@northbridgestaffing.example }
+  payroll:    { name: Northbridge Staffing Payroll, email: payroll@northbridgestaffing.example }
+  lodging:    { name: StayLocal Furnished Rentals,  email: invoices@staylocal.example }
+  airline:    { name: Skyline Air,                  email: itinerary@skylineair.example }
+  dmv:        { name: State Driver Licensing,       email: no-reply@driverlicensing.example }
+  vehicles:   { name: State Vehicle Services,       email: renewals@vehicleservices.example }
+  elections:  { name: County Election Office,       email: voter@countyelections.example }
+  nursing:    { name: State Board of Nursing,       email: licensing@boardofnursing.example }
+
+# --- Gmail ---------------------------------------------------------------------
+# address: home   print profile.home_address verbatim
+# address: none   leave the address out (still counts for R2)
+emails:
+  - template: lease_agreement
+    from: landlord
+    when: [{ mo: -12, day: 2 }]
+    attachment: pdf
+    address: home
+    record: lease
+    facts: { term_months: 12, monthly_rent: 1150 }
+
+  - template: rent_received
+    from: landlord
+    cadence: monthly
+    months: { from: -12, to: -1, skip: [-4] }     # the planted hole (R1 warn)
+    day: 3
+    address: home
+    record: rent_payment
+    facts: { amount: 1150 }
+
+  - template: electric_bill
+    from: electric
+    cadence: monthly
+    months: { from: -12, to: -1 }                 # all 12, R2 stays clean
+    day: 14
+    attachment: pdf
+    address: home
+    record: utility_bill
+    facts: { amount_range: [62, 118] }
+
+  - template: internet_bill
+    from: internet
+    cadence: monthly
+    months: { from: -12, to: -1 }
+    day: 21
+    address: none
+    record: utility_bill
+    facts: { amount: 64.99 }
+
+  - template: auto_insurance_declaration
+    from: insurer
+    when: [{ mo: -7, day: 9 }]
+    attachment: pdf
+    address: home
+    record: insurance
+
+  - template: vehicle_registration_renewal
+    from: vehicles
+    when: [{ mo: -5, day: 17 }]
+    attachment: pdf
+    address: home
+    record: vehicle_registration
+
+  - template: voter_registration_confirmation
+    from: elections
+    when: [{ mo: -9, day: 6 }]
+    address: home
+    record: voter_registration
+
+  - template: drivers_license_renewal
+    from: dmv
+    when: [{ mo: -3, day: 11 }]
+    attachment: pdf
+    address: home
+    record: drivers_license
+
+  - template: flight_itinerary
+    from: airline
+    for_each: trips                               # two gap trips + one extra
+    send: on_depart                               # a check-in confirmation, so the email date is inside the break too
+    record: trip_home
+    facts: { home_airport: MCI, away_airport: DEN }
+
+  - template: assignment_confirmation
+    from: agency
+    for_each: [denver-1, denver-2, denver-3]      # original + two extensions
+    lead_days: 10                                 # sent this many days before the start
+    attachment: pdf
+    record: assignment
+
+  - template: paystub
+    from: payroll
+    cadence: weekly
+    weeks: { from: -8, to: -1 }
+    day: 4
+    attachment: pdf
+    record: paystub                               # lines: taxable wage, lodging, M&IE
+
+  - template: lodging_invoice
+    from: lodging
+    cadence: monthly
+    months: { from: -10, to: -1 }                 # the Denver stay
+    day: 1
+    attachment: pdf
+    record: lodging_receipt
+    facts: { amount: 1890, city: Denver }
+
+  - template: nursing_license_fee
+    from: nursing
+    when: [{ mo: -6, day: 19 }]
+    record: other_expense
+
+near_misses:    # must come out skipped or needs_review, never counted as Maya's
+  - template: electric_bill
+    from: electric
+    when: [{ mo: -2, day: 16 }]
+    note: forwarded by a friend; different name and address
+    override: { name: Priya Nair, address: "77 Fictional Alder Court, Lawrence, KS 66000" }
+  - template: rent_received
+    from: landlord
+    when: [{ mo: -4, day: 5 }]
+    note: a former roommate's receipt, in the month Maya's own rent is missing
+    override: { name: Jordan Bell, address: "1842 Fictional Lantern Lane, Unit 5, Kansas City, MO 64100" }
+
+hostile:        # must change nothing and log an ignored_suspicious event
+  - template: hostile_compliance_notice
+    from: { name: Records Compliance, email: notice@records-compliance.example }
+    when: [{ mo: -1, day: 22 }]
+
+noise:          # the triage agent should skip all of these
+  count: 50
+  spread_months: { from: -12, to: 0 }
+  kinds: [newsletter, retail_promo, shipping_update, social_notification, bank_alert, app_receipt]
+
+# Dropped into the inbox live during the demo by POST /demo/inject.
+inject:
+  - template: electric_bill
+    from: electric
+    when: now
+    address: home
+    record: utility_bill
+    facts: { amount: 87.42 }
+
+# --- Bank and card (Plaid custom user) -------------------------------------------
+# Plaid dates are relative to when the Item is created, so the Item is recreated
+# on every demo reset.
+bank:
+  recurring:
+    - { name: "WESTPORT PROPERTY MGMT ACH", amount: 1150, cadence: monthly, day: 2,
+        months: { from: -12, to: -1, skip: [-4] }, record: rent_payment }
+    - { name: "EVERGREEN POWER & LIGHT AUTOPAY", amount_range: [62, 118], cadence: monthly, day: 18,
+        months: { from: -12, to: 0 }, record: utility_payment }
+    - { name: "PLAINSNET INTERNET", amount: 64.99, cadence: monthly, day: 23,
+        months: { from: -12, to: 0 }, record: utility_payment }
+    - { name: "PRAIRIE MOBILE WIRELESS", amount: 55, cadence: monthly, day: 8, months: { from: -12, to: 0 } }
+    - { name: "HEARTLAND MUTUAL INS", amount: 142.5, cadence: monthly, day: 12, months: { from: -12, to: 0 } }
+    - { name: "IRONWORKS GYM KC", amount: 29, cadence: monthly, day: 5, months: { from: -12, to: 0 } }
+    - { name: "KEEPSAFE STORAGE KC", amount: 68, cadence: monthly, day: 1, months: { from: -12, to: 0 } }
+    - { name: "STAYLOCAL FURNISHED RENTALS", amount: 1890, cadence: monthly, day: 1,
+        months: { from: -10, to: 0 }, record: lodging_receipt }
+  deposits:
+    - { name: "NORTHBRIDGE STAFFING PAYROLL", cadence: biweekly, amount_from: weekly_taxable_wage }
+    - { name: "NORTHBRIDGE STAFFING STIPEND", cadence: weekly, amount_from: [weekly_lodging_stipend, weekly_mie_stipend] }
+  per_trip:     # only for gaps and extra trips that have a trip home
+    - { name: "SKYLINE AIR", amount_range: [189, 312], record: trip_home }
+    - { name: "QUIKFUEL KANSAS CITY MO", amount_range: [34, 58], record: trip_home }
+    - { name: "METRO RIDESHARE", amount_range: [18, 41] }
+  everyday:     # realism; city follows where Maya is that week
+    - { kind: groceries, per_week: 2, amount_range: [38, 126] }
+    - { kind: coffee, per_week: 3, amount_range: [4, 9] }
+    - { kind: pharmacy, per_month: 1, amount_range: [12, 46] }
+    - { kind: uniform_shop, per_quarter: 1, amount_range: [48, 110] }
+    - { kind: p2p_transfer_friend, per_month: 1, amount_range: [20, 60] }
+
+# --- Calendar --------------------------------------------------------------------
+calendar:
+  - { title: "Assignment: {facility}", for_each: assignments, span: assignment }
+  - { title: "Orientation - {facility}", for_each: [tucson, denver-1], on: start }
+  - { title: "Contract ends - {facility}", for_each: assignments, on: end }
+  - { title: "Flight home KC", for_each: trips, on: depart }
+
+# --- Uploads (used live in the demo) -----------------------------------------------
+uploads:
+  - { file: gas_receipt.png, kind: receipt_photo, record: fuel_receipt, when: { wk: -1, day: 2 },
+      facts: { merchant: QuikFuel, city: Denver, amount: 41.87 } }
+  - { file: lodging_checkin.png, kind: receipt_photo, record: lodging_receipt, when: { wk: -15, day: 0 },
+      facts: { merchant: StayLocal Furnished Rentals, city: Denver, amount: 1890 } }
+  - { file: recruiter_text.png, kind: text_screenshot, record: contract_offer, when: { wk: 0, day: 1 },
+      facts: { from: Northbridge Staffing recruiter, summary: "extension offer, 17 more weeks in Denver" } }

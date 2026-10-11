@@ -3,6 +3,8 @@ import os
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.routers.stubs import router as stubs_router
+
 VERSION = os.getenv("APP_VERSION", "0.1.0")
 
 app = FastAPI(title="Anchorpoint", version=VERSION)
@@ -24,3 +26,4 @@ def health() -> dict:
 
 
 app.include_router(api)
+app.include_router(stubs_router)
