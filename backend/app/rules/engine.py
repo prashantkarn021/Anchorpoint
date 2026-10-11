@@ -1,6 +1,7 @@
 from datetime import date
+from itertools import pairwise
 
-from backend.app.models import Finding, Record
+from backend.app.models import Assignment, Finding, Record
 
 
 def check_housing_continuity(records: list[Record], today: date) -> list[Finding]:
@@ -68,5 +69,43 @@ def check_utility_continuity(
             detail=f"Utility bills or payment proof are missing for: {', '.join(missing)}.",
             record_ids=[record.id for record in counted],
             recommended_action="Find the missing utility bills or ask your CPA.",
+        )
+    ]
+
+
+def check_return_trips(
+    records: list[Record], assignments: list[Assignment],
+) -> list[Finding]:
+    """Flag assignment gaps of at least three days without return-trip evidence."""
+    eligible = sorted(
+        (assignment for assignment in assignments if assignment.status in ("completed", "active")),
+        key=lambda assignment: assignment.start,
+    )
+    trips = [
+        record for record in records
+        if record.type == "trip_home" and record.user_status != "rejected"
+    ]
+    missing = []
+    counted_ids = set()
+    for previous, following in pairwise(eligible):
+        if (following.start - previous.end).days < 3:
+            continue
+        covering = [trip for trip in trips if previous.end <= trip.date <= following.start]
+        if covering:
+            counted_ids.update(trip.id for trip in covering)
+        else:
+            missing.append(f"{previous.end.isoformat()} to {following.start.isoformat()}")
+    if not missing:
+        return []
+    return [
+        Finding(
+            rule_id="R3",
+            severity="warn",
+            title="Missing return-trip evidence",
+            detail=f"Proof of a trip home is missing for: {'; '.join(missing)}.",
+            record_ids=list(dict.fromkeys(trip.id for trip in trips if trip.id in counted_ids)),
+            recommended_action=(
+                "Find proof of a trip home (flight, mileage or fuel records) or ask your CPA."
+            ),
         )
     ]
