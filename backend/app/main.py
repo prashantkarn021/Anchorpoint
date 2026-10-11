@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.routers.demo import router as demo_router
 from backend.app.routers.oauth import router as oauth_router
+from backend.app.routers.records import router as records_router
 from backend.app.routers.stubs import router as stubs_router
 from backend.app.routers.sync import router as sync_router
 
@@ -30,6 +31,7 @@ def health() -> dict:
 
 app.include_router(api)
 app.include_router(oauth_router)
+app.include_router(records_router)
 app.include_router(demo_router)
 app.include_router(sync_router)
 app.include_router(stubs_router)

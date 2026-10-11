@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TypeVar
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import TypeAdapter
 
 from backend.app.models import (
@@ -10,7 +10,6 @@ from backend.app.models import (
     Connection,
     MonthlyLedgerRow,
     Profile,
-    Record,
 )
 
 router = APIRouter(prefix="/api")
@@ -30,19 +29,6 @@ def profile() -> Profile:
 @router.get("/connections", response_model=list[Connection])
 def connections() -> list[Connection]:
     return load_fixture("connections.json", TypeAdapter(list[Connection]))
-
-
-@router.get("/records", response_model=list[Record])
-def records() -> list[Record]:
-    return load_fixture("records.json", TypeAdapter(list[Record]))
-
-
-@router.get("/records/{id}", response_model=Record)
-def record(id: str) -> Record:
-    for item in records():
-        if item.id == id:
-            return item
-    raise HTTPException(status_code=404, detail="Record not found")
 
 
 @router.get("/assignments", response_model=list[Assignment])
