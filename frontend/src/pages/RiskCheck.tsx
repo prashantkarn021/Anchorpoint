@@ -204,7 +204,7 @@ export function RiskCheck() {
         description="Before you sign, see what a new offer does to your one-year clock and your stipends. Rules decide the verdict; the agent explains it."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <Card className="h-fit">
           <div className="border-b border-line p-1.5">
             <div
