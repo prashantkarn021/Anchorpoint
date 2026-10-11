@@ -5,6 +5,7 @@ import html
 import io
 import logging
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
@@ -39,7 +40,9 @@ MAX_ITEMS = 500          # hard cap per sync, protects the LLM budget downstream
 MAX_LISTED = 5000        # ids are cheap to list; stop paging somewhere
 MAX_TEXT_CHARS = 20_000
 MAX_ATTACHMENT_BYTES = 5_000_000
-FETCH_WORKERS = 8
+FETCH_WORKERS = 4        # 8 in parallel tripped Gmail's per-user quota on a cold re-read
+# Gmail counts quota per user per minute, so a refusal clears within about a minute.
+RATE_LIMIT_WAITS = (2, 5, 15, 40)
 
 
 class GmailConnector:
@@ -108,6 +111,18 @@ class GmailConnector:
 
     # --- internals ---------------------------------------------------------------
 
+    def _get(self, url: str, params: dict | None = None, token: str | None = None) -> dict:
+        """Authorized GET that waits out Gmail's rate limit instead of failing the whole sync."""
+        for wait in (*RATE_LIMIT_WAITS, None):
+            try:
+                return self.oauth.http("GET", url, params, None, token or self.oauth.access_token())
+            except GoogleAuthError as exc:
+                if wait is None or not _rate_limited(exc):
+                    raise
+                log.warning("gmail rate limit; retrying in %ss", wait)
+                time.sleep(wait)
+        raise AssertionError("unreachable")
+
     def _list_ids(self, query: str) -> list[str]:
         ids: list[str] = []
         page_token = None
@@ -115,7 +130,7 @@ class GmailConnector:
             params = {"q": query, "maxResults": PAGE_SIZE}
             if page_token:
                 params["pageToken"] = page_token
-            page = self.oauth.get(f"{API}/messages", params)
+            page = self._get(f"{API}/messages", params)
             ids.extend(message["id"] for message in page.get("messages", []))
             page_token = page.get("nextPageToken")
             if not page_token:
@@ -123,9 +138,7 @@ class GmailConnector:
         return ids
 
     def _fetch_item(self, message_id: str, token: str) -> RawItem:
-        message = self.oauth.http(
-            "GET", f"{API}/messages/{message_id}", {"format": "full"}, None, token
-        )
+        message = self._get(f"{API}/messages/{message_id}", {"format": "full"}, token)
         payload = message.get("payload", {})
         headers = {
             header["name"].lower(): header["value"] for header in payload.get("headers", [])
@@ -181,8 +194,15 @@ class GmailConnector:
             return _b64(body["data"])
         if not body.get("attachmentId"):
             raise GoogleAuthError("attachment has no data")
-        reply = self.oauth.get(f"{API}/messages/{message_id}/attachments/{body['attachmentId']}")
+        reply = self._get(f"{API}/messages/{message_id}/attachments/{body['attachmentId']}")
         return _b64(reply.get("data", ""))
+
+
+def _rate_limited(exc: GoogleAuthError) -> bool:
+    """429, or the 403 Gmail sends for "Quota exceeded ... per minute per user"."""
+    return exc.status == 429 or (
+        exc.status == 403 and re.search(r"quota|rate ?limit", str(exc), re.IGNORECASE) is not None
+    )
 
 
 def _walk(part: dict):
