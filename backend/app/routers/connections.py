@@ -9,6 +9,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from backend.app.connectors.calendar import CalendarConnector
 from backend.app.connectors.gmail import GmailConnector
 from backend.app.ledger import Ledger
 from backend.app.models import Connection
@@ -35,6 +36,19 @@ def _gmail() -> GmailConnector | None:
     return connector if connector.oauth.is_connected() else None
 
 
+def _calendar() -> CalendarConnector | None:
+    """The Calendar connector if an account is connected, else None."""
+    try:
+        connector = CalendarConnector(default_vault())
+    except VaultError:
+        return None
+    return connector if connector.oauth.is_connected() else None
+
+
+def _google(provider: str) -> GmailConnector | CalendarConnector | None:
+    return {"gmail": _gmail, "calendar": _calendar}.get(provider, lambda: None)()
+
+
 def _connection(provider: str, scopes: list[str], since: datetime | None, ledger: Ledger) -> Connection:
     last_sync = sync.last_sync(provider)
     return Connection(
@@ -56,6 +70,9 @@ def connections(ledger: Annotated[Ledger, Depends(get_ledger)]) -> list[Connecti
     gmail = _gmail()
     if gmail is not None:
         found.append(_connection("gmail", gmail.oauth.granted_scopes(), None, ledger))
+    calendar = _calendar()
+    if calendar is not None:
+        found.append(_connection("calendar", calendar.oauth.granted_scopes(), None, ledger))
     if bank_session.current() is not None:
         found.append(_connection("bank", BANK_SCOPES, bank_session.connected_at(), ledger))
     return found
@@ -105,7 +122,7 @@ class Revoke(BaseModel):
 @router.post("/connections/{provider}/revoke", response_model=Connection)
 def revoke(provider: str, ledger: Annotated[Ledger, Depends(get_ledger)], body: Revoke | None = None) -> Connection:
     """Withdraw access at the provider and drop our tokens; optionally delete what was read."""
-    gmail = _gmail() if provider == "gmail" else None
+    gmail = _google(provider)  # gmail or calendar: both are Google grants revoked the same way
     if gmail is None and not (provider == "bank" and bank_session.current() is not None):
         raise HTTPException(status_code=404, detail="Connection not found")
     scopes = gmail.oauth.granted_scopes() if gmail else BANK_SCOPES

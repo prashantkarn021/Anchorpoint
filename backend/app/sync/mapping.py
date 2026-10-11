@@ -1,7 +1,7 @@
 """Turn what a connector or the extractor produced into ledger Records. No model calls here."""
 
 import re
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 from backend.app.agents.extractor import needs_review
 from backend.app.agents.prompts import item_text
@@ -111,4 +111,48 @@ def record_from_bank(item: RawItem, home_city: str = "") -> Record | None:
             content_hash=content_hash(item.text),
         ),
         extracted_by="plaid",
+    )
+
+
+# Calendar title -> record type. Fixed keywords only: an invite from anyone can carry hostile
+# text, so calendar events never reach the model. First match wins.
+CALENDAR_RULES: list[tuple[re.Pattern, RecordType]] = [
+    (re.compile(r"\b(?:flight|fly|trip|drive|driving|travel)\s+home\b", re.IGNORECASE), "trip_home"),
+    (re.compile(r"^\s*assignment\s*:", re.IGNORECASE), "assignment"),
+]
+
+
+def record_from_calendar(item: RawItem) -> Record | None:
+    """A calendar event -> Record, or None when the title is not evidence (orientation, ...)."""
+    if not item.meta.get("own"):
+        return None  # an invite from someone else is not the user's own evidence
+    title = str(item.meta.get("title", ""))
+    record_type = next((kind for pattern, kind in CALENDAR_RULES if pattern.search(title)), None)
+    if record_type is None:
+        # ponytail: a deleted or renamed event keeps its earlier record (the ledger has no
+        # single-record delete); the user can reject it. Add tombstones if that matters.
+        return None
+    start = datetime.fromisoformat(item.meta["start"]).date() if item.meta.get("start") else item.received_at.date()
+    end = datetime.fromisoformat(item.meta["end"]).date() if item.meta.get("end") else start
+    span = record_type == "assignment"
+    # Plain characters only in the stored snippet: it is text from the event, shown in the UI.
+    safe_title = re.sub(r"[^A-Za-z0-9 &.,:()\-/]", "", title).strip()
+    snippet = f"{start.isoformat()}{f' to {end.isoformat()}' if span else ''}  {safe_title}"
+    return Record(
+        id=f"calendar-{item.source_id}",
+        type=record_type,
+        factor=FACTOR_BY_TYPE.get(record_type),
+        date=start,
+        period_start=start if span else None,
+        period_end=end if span else None,
+        confidence=1.0,
+        source=SourceRef(
+            provider="calendar",
+            source_id=item.source_id,
+            received_at=item.received_at,
+            snippet=_snippet(snippet),
+            deep_link=item.meta.get("deep_link"),
+            content_hash=content_hash(f"{item.text} {item.meta.get('start')} {item.meta.get('end')}"),
+        ),
+        extracted_by="user",  # the user's own calendar entry; Record has no "calendar" source kind
     )

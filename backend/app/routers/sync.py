@@ -10,13 +10,14 @@ from functools import cache
 from fastapi import APIRouter, HTTPException
 from pydantic import TypeAdapter
 
+from backend.app.connectors.calendar import CalendarConnector
 from backend.app.connectors.gmail import GmailConnector
 from backend.app.connectors.google_oauth import GoogleAuthError
 from backend.app.ledger import Ledger
 from backend.app.models import Profile
 from backend.app.routers.stubs import load_fixture
 from backend.app.sync import bank_session
-from backend.app.sync.ingest import SyncResult, sync_bank, sync_gmail
+from backend.app.sync.ingest import SyncResult, sync_bank, sync_calendar, sync_gmail
 from backend.app.sync.state import SyncState
 from backend.app.vault.tokens import VaultError, database_path, default_vault
 
@@ -102,6 +103,14 @@ def run_sync() -> list[SyncResult]:
         gmail = GmailConnector(default_vault())
         if gmail.oauth.is_connected():
             results.append(sync_gmail(gmail, _ledger(), _state(), _profile()))
+        calendar = CalendarConnector(default_vault())
+        if calendar.oauth.is_connected():
+            try:
+                results.append(sync_calendar(calendar, _ledger(), _state(), _profile()))
+            except GoogleAuthError as exc:  # a calendar problem must not fail the whole sync
+                log.warning("calendar sync failed: %s", exc)
+                if exc.status == 410:  # updatedMin too long ago: start a fresh backfill
+                    _state().set_cursor("calendar", None)
         return results
     finally:
         _running.release()
