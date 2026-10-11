@@ -464,7 +464,7 @@ export function Connections() {
       )}
 
       <p className={clsx("text-xs text-ink-4")}>
-        Coming later: Google Calendar, Outlook, Google Drive, payroll portals and receipt uploads
+        Coming later: Google Calendar, Outlook, Google Drive and payroll portals
         use the same connector. Web apps can't read SMS.
       </p>
 

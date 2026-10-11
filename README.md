@@ -112,6 +112,32 @@ docker compose run --rm -p 127.0.0.1:8765:8765 -e PYTHONPATH=/srv     -v ./scrip
 - **Bank:** `backend.app.seed.bank.bank_transactions(Persona.load("maya"))` returns the rows the Plaid connector plants in the sandbox.
 - **Live email:** `POST /api/demo/inject` adds one fresh utility bill to the demo inbox.
 
+## Receipt uploads
+
+On **Records**, choose **Upload receipts** and select or drag receipt photos or PDFs.
+JPEG, PNG, WEBP and PDF are supported: up to 10 files, 10 MB each, and 5 pages per PDF.
+Text PDFs use the existing guarded extraction pipeline. Photos and scanned PDFs first
+use vision to transcribe visible text, then use that same pipeline. Set `VISION_MODEL_ID`
+to an image-capable model on `INFERENCE_BASE_URL`, or leave it empty if `MODEL_ID`
+already supports images. The existing inference credentials are used.
+
+Accepted receipt records are pending; photo and scanned-PDF records require review.
+Duplicate files return their existing records and preserve user edits. Unreadable,
+irrelevant or suspicious content creates no record and is recorded in Agent activity.
+Only extracted fields, a short snippet, source hash and audit events are stored;
+original files and full transcriptions are discarded. HEIC is not supported; export
+the receipt as JPEG or PNG first. A model failure is reported without fixture fallback.
+
+The upload result shows the extracted text and offers a `.txt` download. Basic checks
+compare the extracted merchant, date and total to the printed text, check an explicit
+subtotal/tax/tip/discount breakdown when complete, and look for matching bank evidence.
+Missing or inconsistent details and sample/void markings require review. **Authenticity
+is always unverified:** a photo and these consistency checks cannot prove a genuine
+receipt or transaction. This check does not create or change tax-risk findings.
+Full text exists only in the response/browser for review and download, not in the ledger.
+API callers can submit multipart `include_text=true` to receive `{records, receipts}`;
+the default response remains `Record[]` for existing clients.
+
 ## Deploy
 
 `make deploy` SSHes to `DEPLOY_HOST`, backs up the SQLite file, pulls `main`, rebuilds the containers and runs the smoke test against `BASE_URL`. Set `DEPLOY_BRANCH` to deploy something other than `main`.

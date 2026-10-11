@@ -7,6 +7,7 @@ from backend.app.routers.activity import router as activity_router
 from backend.app.routers.assessment import router as assessment_router
 from backend.app.routers.connections import router as connections_router
 from backend.app.routers.demo import router as demo_router
+from backend.app.routers.documents import router as documents_router
 from backend.app.routers.oauth import router as oauth_router
 from backend.app.routers.records import router as records_router
 from backend.app.routers.risk import router as risk_router
@@ -37,6 +38,7 @@ app.include_router(api)
 app.include_router(oauth_router)
 app.include_router(connections_router)
 app.include_router(records_router)
+app.include_router(documents_router)
 app.include_router(risk_router)
 app.include_router(assessment_router)
 app.include_router(activity_router)

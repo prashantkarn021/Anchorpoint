@@ -2,19 +2,13 @@ import clsx from "clsx";
 import { FileImage, FileText, FileUp, Trash2, Upload } from "lucide-react";
 import { useRef, useState, type DragEvent } from "react";
 import { useUpload } from "../api/hooks";
-import type { LedgerRecord } from "../api/types";
+import type { LedgerRecord, ReceiptReadout } from "../api/types";
 import { recordTypeLabel } from "../lib/format";
 import { errorMessage, Modal, useToast } from "./overlay";
 import { useRecordLink } from "./RecordDrawer";
 import { Button, Confidence } from "./ui";
 
-export const ACCEPTED_TYPES = [
-  "application/pdf",
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/heic",
-];
+export const ACCEPTED_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
 export const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_FILES = 10;
 
@@ -22,8 +16,9 @@ export function validateFiles(files: File[]): { ok: File[]; errors: string[] } {
   const ok: File[] = [];
   const errors: string[] = [];
   for (const f of files) {
-    const typeOk = ACCEPTED_TYPES.includes(f.type) || /\.(pdf|png|jpe?g|webp|heic)$/i.test(f.name);
-    if (!typeOk) errors.push(`${f.name}: only PDF, PNG, JPG, WEBP or HEIC files`);
+    const typeOk =
+      ACCEPTED_TYPES.includes(f.type) || (!f.type && /\.(pdf|png|jpe?g|webp)$/i.test(f.name));
+    if (!typeOk) errors.push(`${f.name}: only PDF, PNG, JPG or WEBP receipts`);
     else if (f.size > MAX_BYTES) errors.push(`${f.name}: larger than 10 MB`);
     else if (f.size === 0) errors.push(`${f.name}: file is empty`);
     else ok.push(f);
@@ -46,13 +41,14 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
   const [errors, setErrors] = useState<string[]>([]);
   const [drag, setDrag] = useState(false);
   const [created, setCreated] = useState<LedgerRecord[] | null>(null);
+  const [readouts, setReadouts] = useState<ReceiptReadout[]>([]);
   const input = useRef<HTMLInputElement>(null);
   const upload = useUpload();
   const toast = useToast();
   const openRecord = useRecordLink();
 
   const add = (list: FileList | null) => {
-    if (!list) return;
+    if (!list || upload.isPending) return;
     const { ok, errors: errs } = validateFiles([...files, ...Array.from(list)]);
     setFiles(ok);
     setErrors(errs);
@@ -62,10 +58,12 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
     setFiles([]);
     setErrors([]);
     setCreated(null);
+    setReadouts([]);
     upload.reset();
   };
 
   const close = () => {
+    if (upload.isPending) return;
     reset();
     onClose();
   };
@@ -78,12 +76,15 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
 
   const submit = () =>
     upload.mutate(files, {
-      onSuccess: (recs) => {
+      onSuccess: ({ records: recs, receipts }) => {
         setCreated(recs);
+        setReadouts(receipts);
         setFiles([]);
         toast({
-          tone: "success",
-          title: `${recs.length} record${recs.length === 1 ? "" : "s"} extracted`,
+          tone: recs.length ? "success" : "info",
+          title: recs.length
+            ? `${recs.length} receipt record${recs.length === 1 ? "" : "s"} ready for review`
+            : "No receipt records created",
         });
       },
       onError: (e) => toast({ tone: "error", title: "Upload failed", body: errorMessage(e) }),
@@ -93,8 +94,8 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
     <Modal
       open={open}
       onClose={close}
-      title="Add receipts and documents"
-      description="Paper receipts, PDFs, or screenshots of texts. The agent reads each one and files it with its source."
+      title="Upload receipts"
+      description="Add receipt photos or PDFs. See the extracted text and basic receipt checks, then review the pending records."
       footer={
         created ? (
           <>
@@ -114,7 +115,7 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
               variant="primary"
               icon={Upload}
               onClick={submit}
-              disabled={!files.length}
+              disabled={!files.length || upload.isPending}
               loading={upload.isPending}
             >
               {upload.isPending ? "Reading…" : `Upload ${files.length || ""}`.trim()}
@@ -125,8 +126,63 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
     >
       {created ? (
         <div>
+          {readouts.length > 0 && (
+            <div className="mb-4 space-y-3">
+              <p className="text-xs text-ink-3">
+                Authenticity is unverified. These checks cannot prove a receipt is genuine or that a
+                transaction happened.
+              </p>
+              {readouts.map((receipt) => (
+                <section key={receipt.source_id} className="rounded-xl border border-line p-3">
+                  <h3 className="text-sm font-medium text-ink">
+                    {receipt.status === "checks_passed"
+                      ? "Basic receipt checks passed"
+                      : receipt.status === "needs_review"
+                        ? "Receipt needs review"
+                        : receipt.status === "unreadable"
+                          ? "Could not read receipt"
+                          : receipt.status === "ignored_suspicious"
+                            ? "Suspicious instructions ignored"
+                            : "Receipt not recognized"}
+                  </h3>
+                  <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-ink-2">
+                    {receipt.messages.map((message) => (
+                      <li key={message}>{message}</li>
+                    ))}
+                  </ul>
+                  {receipt.text && (
+                    <>
+                      <h4 className="mt-3 text-xs font-medium text-ink">Extracted receipt text</h4>
+                      <pre className="mt-1 max-h-52 overflow-auto rounded-lg bg-sunken p-3 text-xs whitespace-pre-wrap break-words text-ink-2">
+                        {receipt.text}
+                      </pre>
+                      <Button
+                        className="mt-2"
+                        size="sm"
+                        icon={FileText}
+                        onClick={() => {
+                          const url = URL.createObjectURL(
+                            new Blob([receipt.text!], { type: "text/plain;charset=utf-8" }),
+                          );
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.download = `receipt-${receipt.source_id.slice(0, 12)}.txt`;
+                          link.click();
+                          setTimeout(() => URL.revokeObjectURL(url), 1000);
+                        }}
+                      >
+                        Download text
+                      </Button>
+                    </>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
           <p className="text-sm text-ink-2">
-            The agent created these records. Open one to check its fields.
+            {created.length
+              ? "Open a receipt record to check its fields, then confirm or edit it."
+              : "No readable, supported receipts were found. Try a clearer photo. Suspicious instructions are ignored; see Agent activity for details."}
           </p>
           <ul className="mt-3 divide-y divide-line rounded-xl border border-line">
             {created.map((r) => (
@@ -170,16 +226,23 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
             </span>
             <p className="mt-3 text-sm font-medium text-ink">Drag files here</p>
             <p className="mt-1 text-xs text-ink-3">
-              PDF, PNG, JPG, WEBP or HEIC · up to 10 MB each
+              PDF, PNG, JPG or WEBP · up to 10 MB each · 10 receipts per upload
             </p>
-            <Button className="mt-4" size="sm" onClick={() => input.current?.click()}>
+            <Button
+              className="mt-4"
+              size="sm"
+              disabled={upload.isPending}
+              onClick={() => input.current?.click()}
+            >
               Choose files
             </Button>
             <input
               ref={input}
               type="file"
+              aria-label="Receipt files"
               multiple
-              accept={ACCEPTED_TYPES.join(",") + ",.heic"}
+              accept={ACCEPTED_TYPES.join(",")}
+              disabled={upload.isPending}
               className="sr-only"
               tabIndex={-1}
               onChange={(e) => {
@@ -219,7 +282,8 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
             </ul>
           ) : null}
           <p className="mt-4 text-xs text-ink-4">
-            Text messages can't be read by a web app. Forward them or upload a screenshot instead.
+            PDFs can have up to 5 pages. Photo records require review. Original files are not
+            stored.
           </p>
         </>
       )}

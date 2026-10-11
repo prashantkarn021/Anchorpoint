@@ -72,7 +72,7 @@ class AkamaiModel(OpenAIModel):
                 await inner.aclose()  # close the per-request OpenAI client now, even on early exit
 
 
-def make_model(budget: CallBudget | None = None) -> OpenAIModel:
+def make_model(budget: CallBudget | None = None, *, model_id: str | None = None) -> OpenAIModel:
     """Strands model pointed at Akamai's OpenAI-compatible inference. Shared by all P1 agents."""
     return AkamaiModel(
         client_args={
@@ -81,7 +81,7 @@ def make_model(budget: CallBudget | None = None) -> OpenAIModel:
             "timeout": 30,
             "max_retries": 0,  # retries happen in AkamaiModel.stream, where the budget sees them
         },
-        model_id=os.environ["MODEL_ID"],
+        model_id=model_id or os.environ["MODEL_ID"],
         budget=budget,
     )
 
