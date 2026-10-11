@@ -11,6 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend ./backend
 COPY contract ./contract
+# The seed generators (and /demo/inject) read the persona specs.
+COPY scripts/personas ./scripts/personas
 
 RUN mkdir -p /data
 EXPOSE 8000
