@@ -341,3 +341,16 @@ def test_start_auth_does_not_include_previously_granted_scopes():
     query = parse_qs(urlparse(connector.start_auth()).query)
 
     assert "include_granted_scopes" not in query
+
+
+def test_fetch_since_over_the_cap_takes_the_oldest_and_stops_the_cursor_there(monkeypatch):
+    monkeypatch.setattr("backend.app.connectors.gmail.MAX_ITEMS", 2)
+    google = FakeGoogle(  # Gmail lists newest first
+        [message(f"m{n}", 1_760_000_000 + n, "Statement", "body") for n in (4, 3, 2, 1)]
+    )
+    connector, _ = connected(google)
+
+    items, cursor = connector.fetch_since(None)
+
+    assert [item.source_id for item in items] == ["m1", "m2"]
+    assert cursor == "1760000002"
