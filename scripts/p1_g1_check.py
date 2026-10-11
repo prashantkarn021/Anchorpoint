@@ -25,7 +25,7 @@ def check(name: str, fn) -> bool:
     try:
         ok, detail = fn()
     except Exception as e:  # noqa: BLE001 - report, don't crash: this is a gate check
-        ok, detail = False, f"{type(e).__name__}: {e}"
+        ok, detail = False, f"{type(e).__name__}: {str(e)[:120]}"  # truncated: keep endpoint details out of logs
     print(f"{'PASS' if ok else 'FAIL'}  {name}  {detail}")
     return ok
 
