@@ -3,6 +3,7 @@
 import base64
 import html
 import io
+import logging
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
@@ -15,6 +16,8 @@ from backend.app.connectors.google_oauth import (
     http_json,
 )
 from backend.app.models import Attachment, Connection, RawItem
+
+log = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 API = "https://gmail.googleapis.com/gmail/v1/users/me"
@@ -31,6 +34,7 @@ BACKFILL_WINDOW = "newer_than:12m"
 
 PAGE_SIZE = 25
 MAX_ITEMS = 500          # hard cap per sync, protects the LLM budget downstream
+MAX_LISTED = 5000        # ids are cheap to list; stop paging somewhere
 MAX_TEXT_CHARS = 20_000
 MAX_ATTACHMENT_BYTES = 5_000_000
 FETCH_WORKERS = 8
@@ -67,11 +71,19 @@ class GmailConnector:
 
         The cursor's own second is fetched again on purpose so nothing landing in that
         second is missed; ingestion is idempotent on provider + source_id.
+
+        At most MAX_ITEMS come back per call. When more are waiting, the oldest are
+        returned and the cursor stops at the newest of those, so the next call picks
+        up the rest instead of skipping them.
         """
         window = f"after:{cursor}" if cursor else BACKFILL_WINDOW
         ids = self._list_ids(f"{self.query} {window}".strip())
         if not ids:
             return [], cursor or "0"
+        if len(ids) > MAX_ITEMS:
+            log.warning("gmail sync: %d messages waiting, taking the oldest %d", len(ids), MAX_ITEMS)
+            ids = ids[-MAX_ITEMS:]  # Gmail lists newest first
+        self.oauth.access_token()  # refresh once here, not in every worker
         with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as pool:
             items = list(pool.map(self._fetch_item, ids))
         items.sort(key=lambda item: item.received_at)
@@ -86,7 +98,7 @@ class GmailConnector:
     def _list_ids(self, query: str) -> list[str]:
         ids: list[str] = []
         page_token = None
-        while len(ids) < MAX_ITEMS:
+        while len(ids) < MAX_LISTED:
             params = {"q": query, "maxResults": PAGE_SIZE}
             if page_token:
                 params["pageToken"] = page_token
@@ -95,7 +107,7 @@ class GmailConnector:
             page_token = page.get("nextPageToken")
             if not page_token:
                 break
-        return ids[:MAX_ITEMS]
+        return ids
 
     def _fetch_item(self, message_id: str) -> RawItem:
         message = self.oauth.get(f"{API}/messages/{message_id}", {"format": "full"})
