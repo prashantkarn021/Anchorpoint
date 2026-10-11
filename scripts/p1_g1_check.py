@@ -10,8 +10,8 @@ from pathlib import Path
 from pydantic import BaseModel
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
-from app.agents.llm import make_model  # noqa: E402
-from strands import Agent  # noqa: E402
+from app.agents.llm import make_model
+from strands import Agent
 
 
 class Payment(BaseModel):
@@ -23,7 +23,7 @@ class Payment(BaseModel):
 def check(name: str, fn) -> bool:
     try:
         ok, detail = fn()
-    except Exception as e:  # report, don't crash: this is a gate check
+    except Exception as e:  # noqa: BLE001 - report, don't crash: this is a gate check
         ok, detail = False, f"{type(e).__name__}: {e}"
     print(f"{'PASS' if ok else 'FAIL'}  {name}  {detail}")
     return ok
