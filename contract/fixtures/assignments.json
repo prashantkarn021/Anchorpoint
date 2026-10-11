@@ -1,57 +1,87 @@
 [
   {
-    "id": "assignment-1",
-    "facility": "Fictional Meadowlight Medical Center",
+    "id": "a1",
+    "facility": "Fictional Saguaro Ridge Medical Center",
     "metro": {
-      "name": "Wichita",
-      "state": "KS",
+      "name": "Tucson",
+      "state": "AZ",
       "high_cost": false
     },
-    "start": "2026-04-06",
-    "end": "2026-07-05",
+    "start": "2025-08-25",
+    "end": "2025-11-24",
     "status": "completed",
-    "weekly_taxable_wage": 1280,
-    "weekly_lodging_stipend": 850,
-    "weekly_mie_stipend": 350,
-    "distance_from_home_mi": 198,
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
     "source_record_ids": []
   },
   {
-    "id": "assignment-2",
-    "facility": "Fictional Silverleaf Medical Center",
+    "id": "a2",
+    "facility": "Fictional Front Range Regional Hospital",
     "metro": {
-      "name": "Des Moines",
-      "state": "IA",
-      "high_cost": false
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
     },
-    "start": "2026-09-07",
-    "end": "2026-12-06",
-    "status": "active",
-    "weekly_taxable_wage": 1280,
-    "weekly_lodging_stipend": 850,
-    "weekly_mie_stipend": 350,
-    "distance_from_home_mi": 194,
-    "source_record_ids": [
-      "paystub-1"
-    ]
+    "start": "2025-12-08",
+    "end": "2026-03-09",
+    "status": "completed",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
   },
   {
-    "id": "assignment-3",
-    "facility": "Fictional Riverglass Medical Center",
+    "id": "a3",
+    "facility": "Fictional Front Range Regional Hospital",
     "metro": {
-      "name": "Omaha",
-      "state": "NE",
-      "high_cost": false
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
     },
-    "start": "2027-01-04",
-    "end": "2027-04-04",
+    "start": "2026-03-16",
+    "end": "2026-06-15",
+    "status": "completed",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  },
+  {
+    "id": "a4",
+    "facility": "Fictional Front Range Regional Hospital",
+    "metro": {
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
+    },
+    "start": "2026-06-22",
+    "end": "2026-10-19",
+    "status": "active",
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1050,
+    "weekly_mie_stipend": 455,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
+  },
+  {
+    "id": "a5",
+    "facility": "Fictional Front Range Regional Hospital",
+    "metro": {
+      "name": "Denver",
+      "state": "CO",
+      "high_cost": true
+    },
+    "start": "2026-10-19",
+    "end": "2027-02-15",
     "status": "offered",
-    "weekly_taxable_wage": 1280,
-    "weekly_lodging_stipend": 850,
-    "weekly_mie_stipend": 350,
-    "distance_from_home_mi": 187,
-    "source_record_ids": [
-      "contract-offer-1"
-    ]
+    "weekly_taxable_wage": 1152,
+    "weekly_lodging_stipend": 1750,
+    "weekly_mie_stipend": 630,
+    "distance_from_home_mi": null,
+    "source_record_ids": []
   }
 ]

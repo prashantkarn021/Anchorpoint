@@ -163,9 +163,9 @@
     "id": "trip-home-1",
     "type": "trip_home",
     "factor": 3,
-    "date": "2026-09-18",
-    "period_start": "2026-09-18",
-    "period_end": "2026-09-21",
+    "date": "2026-03-12",
+    "period_start": "2026-03-12",
+    "period_end": "2026-03-12",
     "amount": 96,
     "payee": "Fictional Prairie Transit",
     "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
@@ -175,15 +175,15 @@
     "source": {
       "provider": "gmail",
       "source_id": "synthetic-trip-home-1",
-      "received_at": "2026-09-18T12:00:00Z",
-      "snippet": "Maya Torres returned to her Kansas City home to visit her family.",
+      "received_at": "2026-03-12T12:00:00Z",
+      "snippet": "Synthetic trip: Maya Torres returned to her Kansas City home to visit family on 2026-03-12.",
       "deep_link": "https://sources.example/fixtures/trip-home-1",
-      "content_hash": "f8e197ed9f31744a6b08dcab4148838bf353aab6e74e1b30e302919230320421"
+      "content_hash": "5f6c26fab2888aa8f7ff4fa3322a1f08b18f7dd8d51841c5bdf9b639f1d873ae"
     },
     "extracted_by": "agent",
     "history": [
       {
-        "ts": "2026-09-18T12:00:00Z",
+        "ts": "2026-03-12T12:00:00Z",
         "actor": "system",
         "action": "created",
         "record_id": "trip-home-1",
@@ -198,7 +198,7 @@
     "date": "2026-10-09",
     "period_start": "2026-10-05",
     "period_end": "2026-10-11",
-    "amount": 2480,
+    "amount": 2657,
     "payee": "Fictional Lantern Nurse Staffing",
     "address": null,
     "confidence": 1.0,
@@ -208,9 +208,9 @@
       "provider": "gmail",
       "source_id": "synthetic-paystub-1",
       "received_at": "2026-10-09T12:00:00Z",
-      "snippet": "Maya Torres, ICU travel nurse: weekly taxable wage $1,280; lodging $850; meals $350.",
+      "snippet": "Maya Torres, ICU travel nurse in Denver: weekly taxable wage $1,152; lodging $1,050; meals $455.",
       "deep_link": "https://sources.example/fixtures/paystub-1",
-      "content_hash": "454b081bf980a2faeec2553b04aa93e42d704fa502a27aaf4cd2ced00668a70b"
+      "content_hash": "632c81764cce3d2e7b4ba028d523f5c3945cfde47f7543490a21a3919d68c770"
     },
     "extracted_by": "agent",
     "history": [
@@ -228,10 +228,10 @@
     "type": "contract_offer",
     "factor": null,
     "date": "2026-10-08",
-    "period_start": "2027-01-04",
-    "period_end": "2027-04-04",
+    "period_start": "2026-10-19",
+    "period_end": "2027-02-15",
     "amount": null,
-    "payee": "Fictional Riverglass Medical Center",
+    "payee": "Fictional Front Range Regional Hospital",
     "address": null,
     "confidence": 1.0,
     "needs_review": false,
@@ -240,9 +240,9 @@
       "provider": "gmail",
       "source_id": "synthetic-contract-offer-1",
       "received_at": "2026-10-08T12:00:00Z",
-      "snippet": "Synthetic offer for Maya Torres to work as an ICU travel nurse in Omaha.",
+      "snippet": "Synthetic Denver ICU extension offer for Maya Torres, 2026-10-19 to 2027-02-15: weekly taxable wage $1,152; lodging $1,750; meals $630.",
       "deep_link": "https://sources.example/fixtures/contract-offer-1",
-      "content_hash": "86858ac8cb7eaa4e71b1a76f36f1ad285ea1203a9cd148fb27db55d01a2710c2"
+      "content_hash": "9815502ea9dede9e8c9aa38689789a1fcf5b5f82101e0b484a175389b2da7cd2"
     },
     "extracted_by": "agent",
     "history": [
@@ -251,6 +251,70 @@
         "actor": "system",
         "action": "created",
         "record_id": "contract-offer-1",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "trip-home-2",
+    "type": "trip_home",
+    "factor": 3,
+    "date": "2026-06-18",
+    "period_start": "2026-06-18",
+    "period_end": "2026-06-18",
+    "amount": 96,
+    "payee": "Fictional Prairie Transit",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-trip-home-2",
+      "received_at": "2026-06-18T12:00:00Z",
+      "snippet": "Synthetic trip: Maya Torres returned to her Kansas City home to visit family on 2026-06-18.",
+      "deep_link": "https://sources.example/fixtures/trip-home-2",
+      "content_hash": "ae777d19414b9f7a9941e77ac6d85e84b6e8adc9be7c1727c5f5d5f74262bf21"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-06-18T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "trip-home-2",
+        "detail": "Created from synthetic fixture evidence; no real personal data."
+      }
+    ]
+  },
+  {
+    "id": "trip-home-3",
+    "type": "trip_home",
+    "factor": 3,
+    "date": "2026-08-29",
+    "period_start": "2026-08-29",
+    "period_end": "2026-08-29",
+    "amount": 96,
+    "payee": "Fictional Prairie Transit",
+    "address": "1842 Fictional Lantern Lane, Unit 3, Kansas City, MO 64100",
+    "confidence": 1.0,
+    "needs_review": false,
+    "user_status": "confirmed",
+    "source": {
+      "provider": "gmail",
+      "source_id": "synthetic-trip-home-3",
+      "received_at": "2026-08-29T12:00:00Z",
+      "snippet": "Synthetic trip: Maya Torres returned to her Kansas City home to visit family on 2026-08-29.",
+      "deep_link": "https://sources.example/fixtures/trip-home-3",
+      "content_hash": "9beb6ce58cfe78d72d56b1311e4dd9ff1bd816bea63049b16395d5c132f27572"
+    },
+    "extracted_by": "agent",
+    "history": [
+      {
+        "ts": "2026-08-29T12:00:00Z",
+        "actor": "system",
+        "action": "created",
+        "record_id": "trip-home-3",
         "detail": "Created from synthetic fixture evidence; no real personal data."
       }
     ]

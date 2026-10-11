@@ -1,88 +1,88 @@
 [
   {
+    "month": "2025-10",
+    "home_housing_paid": 1425,
+    "home_utilities_paid": 118,
+    "stipends_received": 6665.0,
+    "missing": []
+  },
+  {
+    "month": "2025-11",
+    "home_housing_paid": 1425,
+    "home_utilities_paid": 118,
+    "stipends_received": 5160.0,
+    "missing": []
+  },
+  {
+    "month": "2025-12",
+    "home_housing_paid": 1425,
+    "home_utilities_paid": 118,
+    "stipends_received": 5160.0,
+    "missing": []
+  },
+  {
     "month": "2026-01",
     "home_housing_paid": 1425,
     "home_utilities_paid": 118,
-    "stipends_received": 0,
+    "stipends_received": 6665.0,
     "missing": []
   },
   {
     "month": "2026-02",
     "home_housing_paid": 1425,
     "home_utilities_paid": 118,
-    "stipends_received": 0,
+    "stipends_received": 6020.0,
     "missing": []
   },
   {
     "month": "2026-03",
     "home_housing_paid": 1425,
     "home_utilities_paid": 118,
-    "stipends_received": 0,
+    "stipends_received": 5375.0,
     "missing": []
   },
   {
     "month": "2026-04",
     "home_housing_paid": 1425,
     "home_utilities_paid": 118,
-    "stipends_received": 4800,
+    "stipends_received": 6450.0,
     "missing": []
   },
   {
     "month": "2026-05",
     "home_housing_paid": 1425,
     "home_utilities_paid": 118,
-    "stipends_received": 4800,
+    "stipends_received": 6665.0,
     "missing": []
   },
   {
     "month": "2026-06",
-    "home_housing_paid": 1425,
-    "home_utilities_paid": 118,
-    "stipends_received": 4800,
-    "missing": []
-  },
-  {
-    "month": "2026-07",
-    "home_housing_paid": 1425,
-    "home_utilities_paid": 118,
-    "stipends_received": 0,
-    "missing": []
-  },
-  {
-    "month": "2026-08",
     "home_housing_paid": 0,
     "home_utilities_paid": 118,
-    "stipends_received": 0,
+    "stipends_received": 5160.0,
     "missing": [
       "rent"
     ]
   },
   {
+    "month": "2026-07",
+    "home_housing_paid": 1425,
+    "home_utilities_paid": 118,
+    "stipends_received": 6665.0,
+    "missing": []
+  },
+  {
+    "month": "2026-08",
+    "home_housing_paid": 1425,
+    "home_utilities_paid": 118,
+    "stipends_received": 6665.0,
+    "missing": []
+  },
+  {
     "month": "2026-09",
     "home_housing_paid": 1425,
     "home_utilities_paid": 118,
-    "stipends_received": 4800,
-    "missing": []
-  },
-  {
-    "month": "2026-10",
-    "home_housing_paid": 1425,
-    "home_utilities_paid": 124,
-    "stipends_received": 4800,
-    "missing": []
-  },
-  {
-    "month": "2026-11",
-    "home_housing_paid": 1425,
-    "home_utilities_paid": 118,
-    "stipends_received": 4800,
-    "missing": []
-  },
-  {
-    "month": "2026-12",
-    "home_housing_paid": 1425,
-    "home_utilities_paid": 118,
-    "stipends_received": 0,
+    "stipends_received": 6450.0,
     "missing": []
   }
 ]
