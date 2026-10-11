@@ -104,7 +104,7 @@ def reset_client(monkeypatch, tmp_path):
     state.mark("gmail", "m1", "record")
     started = []
     monkeypatch.setattr(sync, "_state", lambda: state)
-    monkeypatch.setattr(demo, "_sync_in_background", lambda: started.append(True))
+    monkeypatch.setattr(demo, "_sync_in_background", lambda bank=None: started.append(bank))
     app.dependency_overrides[get_ledger] = lambda: ledger
     yield TestClient(app), ledger, state, started
     app.dependency_overrides.clear()
@@ -124,7 +124,7 @@ def test_reset_empties_the_ledger_and_sync_memory_then_starts_a_sync(reset_clien
     assert ledger.list_events() == []
     assert state.cursor("gmail") is None
     assert state.seen("gmail") == {}
-    assert started == [True]
+    assert started == [None]  # no bank connected, so nothing to re-create
 
 
 def test_reset_reloads_fixture_records_when_seeding_is_on(reset_client, monkeypatch):

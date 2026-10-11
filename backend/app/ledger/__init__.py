@@ -166,14 +166,22 @@ class Ledger:
             row = connection.execute("SELECT * FROM records WHERE id = ?", (id,)).fetchone()
             return self._read_record(connection, row)
 
-    def clear(self) -> tuple[int, int]:
-        """Delete every record and audit event; returns how many of each. For the demo reset.
+    def clear(self, provider: str | None = None) -> tuple[int, int]:
+        """Delete records and audit events; returns how many of each. For reset and revoke.
 
-        Only this ledger's tables: the token vault and sync state share the file and are kept.
+        With a provider, only that provider's records and their events go. Only this ledger's
+        tables are touched: the token vault and sync state share the file and are kept.
         """
         with self._connection() as connection:
-            records = connection.execute("DELETE FROM records").rowcount
-            events = connection.execute("DELETE FROM audit_events").rowcount
+            if provider is None:
+                records = connection.execute("DELETE FROM records").rowcount
+                events = connection.execute("DELETE FROM audit_events").rowcount
+                return records, events
+            events = connection.execute(
+                "DELETE FROM audit_events WHERE record_id IN (SELECT id FROM records WHERE provider = ?)",
+                (provider,),
+            ).rowcount
+            records = connection.execute("DELETE FROM records WHERE provider = ?", (provider,)).rowcount
             return records, events
 
     def add_event(self, event: AuditEvent) -> None:

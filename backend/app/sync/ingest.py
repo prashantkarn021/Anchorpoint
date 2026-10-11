@@ -83,7 +83,8 @@ def sync_gmail(
             state.mark(provider, item.source_id, "suspicious")
             result.suspicious += 1
         else:
-            _event(ledger, "skipped", f"{provider}:{item.source_id}: not evidence ({_sender(item)})")
+            if "skipped" not in actions:  # the pipeline may already have said so
+                _event(ledger, "skipped", f"{provider}:{item.source_id}: not evidence ({_sender(item)})")
             state.mark(provider, item.source_id, "skipped")
             result.skipped += 1
 
@@ -109,6 +110,7 @@ def sync_bank(connector: Connector, ledger: Ledger, state: SyncState, profile: P
         _event(ledger, "found", f"bank: {len(items)} transaction(s) to read", actor="system")
     for item in items:
         record = record_from_bank(item, profile.home_metro.name)
+        state.mark("bank", item.source_id, "record" if record else "skipped")
         if record is None:
             result.skipped += 1
             continue
