@@ -31,12 +31,12 @@ def enforce(r: TriageResult) -> TriageResult:
     return r
 
 
-def triage(item: RawItem, budget: CallBudget | None = None, *, use_cache: bool = True) -> TriageResult:
+def triage(item: RawItem, budget: CallBudget | None = None) -> TriageResult:
     """A cache hit makes no model request, so it costs no budget (plan §7: cache by content hash).
     Raises on model failure or an exhausted budget; pipeline.ingest turns that into an event."""
     text = item_text(item)
     key = content_hash(text)  # same text the model sees, so same answer
-    if use_cache and key in _cache:
+    if key in _cache:
         return _cache[key].model_copy()  # callers can't mutate the cache
     agent = Agent(model=make_model(budget), system_prompt=TRIAGE_SYSTEM, tools=[], callback_handler=None)
     with model_slot:
@@ -47,7 +47,5 @@ def triage(item: RawItem, budget: CallBudget | None = None, *, use_cache: bool =
         )
     if result.structured_output is None:
         raise RuntimeError(f"triage gave no valid output (stop_reason={result.stop_reason})")
-    checked = enforce(result.structured_output)
-    if use_cache:
-        _cache[key] = checked  # only successful results are cached
-    return checked.model_copy()
+    _cache[key] = enforce(result.structured_output)  # only successful results are cached
+    return _cache[key].model_copy()

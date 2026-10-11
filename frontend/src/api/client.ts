@@ -22,7 +22,6 @@ import type {
   Provider,
   RecordFilters,
   RecordPatch,
-  ReceiptUploadResult,
   RiskCheckRequest,
   RiskReport,
   StartConnectionResponse,
@@ -196,29 +195,6 @@ export function filterRecords(list: LedgerRecord[], f: RecordFilters): LedgerRec
 
 // ---- endpoints ----
 
-async function uploadReceipts(files: File[], includeText: boolean): Promise<ReceiptUploadResult> {
-  const form = new FormData();
-  for (const file of files) form.append("files", file, file.name);
-  if (includeText) form.append("include_text", "true");
-  if (API_MODE === "fixtures") {
-    markSource("documents", true);
-    return { records: fixtureStore.upload(files), receipts: [] };
-  }
-  try {
-    const result = await rawRequest<LedgerRecord[] | ReceiptUploadResult>(
-      "POST",
-      "/documents",
-      form,
-    );
-    markSource("documents", false);
-    return Array.isArray(result) ? { records: result, receipts: [] } : result;
-  } catch (error) {
-    if (error instanceof Unavailable)
-      throw new ApiError(503, "Receipt upload is unavailable. Please retry later.");
-    throw error;
-  }
-}
-
 export const api = {
   health: () =>
     request<Health>("health", "GET", "/health", () => ({ status: "ok", version: "fixtures" })),
@@ -280,8 +256,17 @@ export const api = {
     );
   },
 
-  uploadDocuments: (files: File[]) => uploadReceipts(files, false).then((result) => result.records),
-  uploadReceipts: (files: File[]) => uploadReceipts(files, true),
+  uploadDocuments: (files: File[]) => {
+    const form = new FormData();
+    for (const f of files) form.append("files", f, f.name);
+    return request<LedgerRecord[]>(
+      "documents",
+      "POST",
+      "/documents",
+      () => fixtureStore.upload(files),
+      form,
+    );
+  },
 
   assignments: () =>
     request<Assignment[]>("assignments", "GET", "/assignments", () => fixtureStore.assignments()),

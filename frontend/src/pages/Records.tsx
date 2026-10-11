@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronDown, Inbox, Search, Upload, X } from "lucide-react";
+import { ChevronDown, Inbox, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useProfile, useRecords } from "../api/hooks";
@@ -12,7 +12,6 @@ import type {
   UserStatus,
 } from "../api/types";
 import { useRecordLink } from "../components/RecordDrawer";
-import { UploadDialog } from "../components/UploadDialog";
 import {
   Button,
   Card,
@@ -50,7 +49,6 @@ function Select({
     <label className="relative">
       <span className="sr-only">{label}</span>
       <select
-        aria-label={label}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={clsx(
@@ -88,7 +86,6 @@ function matches(r: LedgerRecord, q: string) {
 }
 
 export function Records() {
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [params, setParams] = useSearchParams();
   const openRecord = useRecordLink();
   const [query, setQuery] = useState("");
@@ -157,14 +154,8 @@ export function Records() {
     <div className="space-y-5">
       <PageHeader
         title="Records"
-        actions={
-          <Button icon={Upload} onClick={() => setUploadOpen(true)}>
-            Upload receipts
-          </Button>
-        }
         description="Every piece of evidence the agent filed, with the source it came from. A payment found in both your email and your bank is shown once, with both sources. Open a record to confirm, reject or edit it."
       />
-      <UploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
 
       <div className="flex flex-wrap items-center gap-2">
         <label className="relative min-w-[13.75rem] flex-1 sm:max-w-xs">
@@ -270,7 +261,7 @@ export function Records() {
             <EmptyState
               icon={Inbox}
               title="No records yet"
-              body="Upload receipts or connect Gmail or your bank. The agent files evidence here with its source."
+              body="Connect Gmail or your bank. The agent files evidence here with its source."
             />
           )
         ) : (

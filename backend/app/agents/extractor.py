@@ -93,15 +93,14 @@ def _key(item: RawItem, profile: Profile, doc_type: RecordType) -> tuple[str, st
 
 
 def extract(item: RawItem, profile: Profile, doc_type: RecordType,
-            budget: CallBudget | None = None, *, use_cache: bool = True) -> tuple[CandidateRecord, bool]:
+            budget: CallBudget | None = None) -> tuple[CandidateRecord, bool]:
     """Returns (record, cached). A cache hit makes no model request, so it costs no budget.
     Raises on model failure or an exhausted budget; pipeline.ingest turns that into an event."""
     text, holder, key = item_text(item), _holder(profile), _key(item, profile, doc_type)
-    if use_cache and key in _cache:
+    if key in _cache:
         return _cache[key].model_copy(deep=True), True  # callers can't mutate the cache
     prompt = f"{holder}\nTriage guessed doc_type: {doc_type}\n\n" + wrap_document(text)
     record = enforce(_run_agent(prompt, budget), text)
     record = match_home(record, profile.home_address)
-    if use_cache:
-        _cache[key] = record
+    _cache[key] = record
     return record.model_copy(deep=True), False

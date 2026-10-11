@@ -8,6 +8,3 @@ strands-agents[openai]>=1.59,<2
 plaid-python>=45,<46
 pypdf>=6,<7
 python-dotenv>=1,<2
-python-multipart>=0.0.20,<1
-Pillow>=11,<13
-PyMuPDF>=1.25,<2
