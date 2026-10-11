@@ -83,7 +83,8 @@ def sync_gmail(
             state.mark(provider, item.source_id, "suspicious")
             result.suspicious += 1
         else:
-            _event(ledger, "skipped", f"{provider}:{item.source_id}: not evidence ({_sender(item)})")
+            if "skipped" not in actions:
+                _event(ledger, "skipped", f"{provider}:{item.source_id}: not evidence ({_sender(item)})")
             state.mark(provider, item.source_id, "skipped")
             result.skipped += 1
 
