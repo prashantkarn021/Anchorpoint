@@ -48,20 +48,35 @@ soft() {
   fi
 }
 
+# The endpoint works either way; this reports whether the demo is set up. Absent = "wait".
+# state <name> <path> <text>
+state() {
+  request GET "$2"
+  if [[ "$code" == 2* && "$body" == *"$3"* ]]; then
+    echo "ok    $1"
+    ok=$((ok + 1))
+  else
+    echo "wait  $1  (not set up on this machine)"
+    waiting=$((waiting + 1))
+  fi
+}
+
 echo "Smoke: $BASE"
 check "health"             GET  /api/health          '"status":"ok"'
 check "web"                GET  /                    "Anchorpoint"
 check "profile"            GET  /api/profile         '"home_address"'
-check "connections: gmail" GET  /api/connections     '"provider":"gmail"'
-check "connections: bank"  GET  /api/connections     '"provider":"bank"'
-check "records non-empty"  GET  /api/records         '"source_id"'
+check "connections"        GET  /api/connections     '['
+state "gmail connected"    /api/connections          '"provider":"gmail"'
+state "bank connected"     /api/connections          '"provider":"bank"'   # drops on every restart
+check "records"            GET  /api/records         '['
+state "records present"    /api/records              '"source_id"'
 check "assessment score"   GET  /api/assessment      '"score"'
 check "monthly ledger"     GET  /api/ledger/monthly  '"month"'
 # 503 = no Google client or vault key on this machine
 soft  "gmail sign-in url"  POST /api/connections/gmail/start 'accounts.google.com' "503"
 # 404/405 = endpoint not built yet
 soft  "risk check verdict" POST /api/risk-check      '"verdict"' "404 405" "$OFFER"
-soft  "activity feed"      GET  /api/activity        '"action"'  "404 405"
+check "activity feed"      GET  /api/activity        '['  # a JSON list; empty right after a reset
 
 if [[ $fail -eq 0 ]]; then
   echo "SMOKE GREEN ($ok ok, $waiting waiting)"
