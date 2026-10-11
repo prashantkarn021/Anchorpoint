@@ -8,7 +8,7 @@ Email, PDF and receipt text is hostile input: it only ever reaches the model ins
 import secrets
 from typing import get_args
 
-from backend.app.models import RecordType
+from backend.app.models import RawItem, RecordType
 
 DOC_TYPES = ", ".join(get_args(RecordType))
 
@@ -52,6 +52,14 @@ that supports the extraction.
 - factor: leave null; it is set by deterministic code, not by you.
 
 {UNTRUSTED_RULES}"""
+
+
+def item_text(item: RawItem) -> str:
+    """Body plus any extracted attachment text: everything an agent sees (and an attacker controls)."""
+    parts = [item.text] + [
+        f"[attachment: {a.filename}]\n{a.text_extracted}" for a in item.attachments if a.text_extracted
+    ]
+    return "\n\n".join(parts)
 
 
 def wrap_document(text: str, max_chars: int = MAX_DOC_CHARS) -> str:
