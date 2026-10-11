@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronDown, Inbox, Search, Upload, X } from "lucide-react";
+import { ChevronDown, Inbox, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useRecords } from "../api/hooks";
@@ -12,7 +12,6 @@ import type {
   UserStatus,
 } from "../api/types";
 import { useRecordLink } from "../components/RecordDrawer";
-import { UploadDialog } from "../components/UploadDialog";
 import {
   Button,
   Card,
@@ -88,7 +87,6 @@ function matches(r: LedgerRecord, q: string) {
 export function Records() {
   const [params, setParams] = useSearchParams();
   const openRecord = useRecordLink();
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(-1);
   const tableRef = useRef<HTMLTableSectionElement>(null);
@@ -152,11 +150,6 @@ export function Records() {
       <PageHeader
         title="Records"
         description="Every piece of evidence the agent filed, with the source it came from. Open a record to confirm, reject or edit it."
-        actions={
-          <Button variant="primary" icon={Upload} onClick={() => setUploadOpen(true)}>
-            Add receipts
-          </Button>
-        }
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -263,17 +256,7 @@ export function Records() {
             <EmptyState
               icon={Inbox}
               title="No records yet"
-              body="Connect Gmail or your bank, or upload a receipt. The agent files evidence here with its source."
-              action={
-                <Button
-                  variant="primary"
-                  size="sm"
-                  icon={Upload}
-                  onClick={() => setUploadOpen(true)}
-                >
-                  Add receipts
-                </Button>
-              }
+              body="Connect Gmail or your bank. The agent files evidence here with its source."
             />
           )
         ) : (
@@ -377,8 +360,6 @@ export function Records() {
           </div>
         ) : null}
       </Card>
-
-      <UploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
     </div>
   );
 }

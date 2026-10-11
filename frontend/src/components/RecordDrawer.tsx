@@ -166,7 +166,7 @@ function DrawerBody({ id, onClose }: { id: string; onClose: () => void }) {
             {r.user_status === "rejected" ? (
               <div className="flex gap-3 rounded-lg border border-line bg-sunken px-4 py-3 text-[0.8125rem] text-ink-2">
                 <CircleX className="mt-0.5 size-4 shrink-0" aria-hidden />
-                <p>Rejected: this record is excluded from your score and the CPA packet.</p>
+                <p>Rejected: this record is excluded from your score.</p>
               </div>
             ) : null}
 

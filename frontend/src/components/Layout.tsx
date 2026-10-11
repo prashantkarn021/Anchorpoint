@@ -3,9 +3,7 @@ import {
   Activity,
   Anchor,
   CalendarClock,
-  ChevronDown,
   Database,
-  FolderArchive,
   Gavel,
   LayoutDashboard,
   Menu,
@@ -24,13 +22,10 @@ import {
   useDemoInject,
   useDemoReset,
   useFixtureEndpoints,
-  useProfile,
   useRecords,
   useSync,
   type StreamState,
 } from "../api/hooks";
-import type { PersonaId } from "../api/types";
-import { PERSONAS } from "../fixtures/personas";
 import { AgentTasks } from "./AgentTasks";
 import { errorMessage, useToast } from "./overlay";
 import { RecordDrawer } from "./RecordDrawer";
@@ -41,7 +36,6 @@ const NAV = [
   { to: "/activity", label: "Agent activity", icon: Activity },
   { to: "/risk-check", label: "Contract check", icon: Gavel },
   { to: "/timeline", label: "Timeline", icon: CalendarClock },
-  { to: "/packet", label: "CPA packet", icon: FolderArchive },
   { to: "/connections", label: "Connections", icon: PlugZap },
 ];
 
@@ -91,53 +85,6 @@ function FixturePill() {
       </span>
       <span className="sr-only sm:hidden">Demo fixtures in use</span>
     </span>
-  );
-}
-
-function PersonaSwitcher() {
-  const profile = useProfile();
-  const reset = useDemoReset();
-  const toast = useToast();
-  // Live profile IDs may be longer ("maya-torres"); match on the persona prefix.
-  const rawId = profile.data?.id ?? "maya";
-  const current: PersonaId =
-    PERSONAS.find((p) => rawId === p.id || rawId.startsWith(`${p.id}-`))?.id ?? "maya";
-  return (
-    <label className="block">
-      <span className="mb-1 block text-[0.6875rem] font-semibold tracking-wide text-ink-4 uppercase">
-        Persona
-      </span>
-      <span className="relative block">
-        <select
-          className="h-9 w-full appearance-none rounded-lg border border-line bg-surface pr-8 pl-3 text-[0.8125rem] font-medium text-ink hover:border-line-strong focus:border-brand-400 focus:outline-none"
-          value={current}
-          disabled={reset.isPending}
-          onChange={(e) => {
-            const id = e.target.value as PersonaId;
-            reset.mutate(id, {
-              onSuccess: () =>
-                toast({
-                  tone: "success",
-                  title: `Switched to ${PERSONAS.find((p) => p.id === id)?.name}`,
-                }),
-              onError: (err) =>
-                toast({ tone: "error", title: "Couldn't switch persona", body: errorMessage(err) }),
-            });
-          }}
-          aria-label="Demo persona"
-        >
-          {PERSONAS.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} · {p.blurb}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          className="pointer-events-none absolute top-2.5 right-2.5 size-4 text-ink-4"
-          aria-hidden
-        />
-      </span>
-    </label>
   );
 }
 
@@ -237,7 +184,6 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
       <div className="space-y-4 border-t border-line px-5 py-4">
-        <PersonaSwitcher />
         <DemoControls />
       </div>
     </div>
