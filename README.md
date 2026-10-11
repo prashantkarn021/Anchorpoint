@@ -9,9 +9,9 @@ Built at Hack Midwest. All people, merchants and accounts in the demo are synthe
 You need Docker.
 
 ```bash
-cp .env.example .env      # fill in the keys you own; the scaffold runs with none
+cp .env.example .env      # fill in the keys you have; the app starts with none
 docker compose up -d --build
-bash scripts/smoke.sh     # expects SMOKE GREEN
+bash scripts/smoke.sh     # expects SMOKE GREEN; "wait" lines are endpoints not built or not configured here
 ```
 
 - App: <http://localhost>
@@ -38,9 +38,16 @@ README.md  .env.example  docker-compose.yml  Caddyfile  Makefile
 contract/            openapi.json, fixtures/, CHANGELOG.md
 backend/app/
   main.py            app + /api/health
-  routers/  connectors/  sync/  vault/  ledger/  rules/  agents/  packet/
+  models.py          shared contract models
+  connectors/        gmail.py, plaid.py, google_oauth.py (shared OAuth plumbing)
+  vault/             encrypted token store
+  routers/           oauth.py, demo.py, stubs.py (fixtures until the real endpoints land)
+  agents/            triage and extraction
+  rules/             deterministic engine
+  seed/              persona -> synthetic emails and bank transactions
+  sync/  ledger/  packet/
 frontend/            Vite + React + TS + Tailwind (see frontend/README.md)
-scripts/             personas/, seed_*.py, smoke.sh, deploy.sh
+scripts/             personas/, seed_gmail.py, smoke.sh, deploy.sh, p1_* and p4_* gate checks
 ```
 
 Python dependencies go in `backend/requirements.txt`.
@@ -55,12 +62,37 @@ Copy `.env.example` to `.env`. `.env` is gitignored: never commit it and never p
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`            | P4    | Google OAuth web client                                       |
 | `OAUTH_REDIRECT_URI`                                  | P4    | Must match a redirect URI registered on that client           |
 | `FRONTEND_URL`                                        | P4    | Where the OAuth callback returns to; empty on the Linode      |
+| `SEED_GOOGLE_CLIENT_ID`, `SEED_GOOGLE_CLIENT_SECRET`  | P4    | Seeder client (Desktop app); only `/api/demo/inject` uses it  |
 | `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV`        | P1    | Plaid Sandbox                                                 |
 | `INFERENCE_BASE_URL`, `INFERENCE_API_KEY`, `MODEL_ID` | P1    | Akamai hosted inference                                       |
-| `TOKEN_ENC_KEY`                                       | P2    | Fernet key for the token vault                                |
+| `TOKEN_ENC_KEY`                                       | P4    | Fernet key for the vault, which will not run without it       |
 | `DATABASE_URL`                                        | P2    | SQLite path inside the `api` container                        |
 | `ALLOWED_ORIGINS`                                     | P2    | Comma-separated CORS origins                                  |
 | `DEPLOY_HOST`, `DEPLOY_DIR`, `BASE_URL`               | P4    | Only on the machine that runs `make deploy`                   |
+
+## Google sign-in
+
+Two OAuth clients in one Google Cloud project, kept apart on purpose:
+
+- **App client (Web application):** asks for `gmail.readonly` only. `POST /api/connections/gmail/start` returns Google's consent URL, and `/api/oauth/callback` stores the tokens in the vault, encrypted.
+- **Seeder client (Desktop app):** writes the synthetic inbox. The app never holds its `gmail.modify` grant; the server keeps only an insert-only grant for `/api/demo/inject`.
+
+The consent screen is in Testing mode, so only listed test users can sign in and Google shows an "unverified app" warning. Grants expire after 7 days.
+
+## Demo data
+
+Everything comes from one spec, `scripts/personas/maya.yaml`, with dates relative to the day you seed.
+
+```bash
+# Preview the inbox without touching anything
+docker compose run --rm -e PYTHONPATH=/srv -v ./scripts:/srv/scripts api     python scripts/seed_gmail.py --dry-run
+
+# Fill the demo inbox (opens a Google sign-in for the demo account; --clear trashes what is there)
+docker compose run --rm -p 127.0.0.1:8765:8765 -e PYTHONPATH=/srv     -v ./scripts:/srv/scripts -v /path/to/seeder_client.json:/secrets/seeder.json:ro     api python scripts/seed_gmail.py --client /secrets/seeder.json --clear
+```
+
+- **Bank:** `backend.app.seed.bank.bank_transactions(Persona.load("maya"))` returns the rows the Plaid connector plants in the sandbox.
+- **Live email:** `POST /api/demo/inject` adds one fresh utility bill to the demo inbox.
 
 ## Deploy
 
