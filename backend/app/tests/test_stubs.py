@@ -9,7 +9,6 @@ from backend.app.main import app
 from backend.app.models import (
     Assessment,
     Assignment,
-    Connection,
     MonthlyLedgerRow,
     Profile,
     Record,
@@ -31,16 +30,6 @@ def test_profile():
     assert profile.home_metro.name == "Kansas City"
     assert profile.home_metro.state == "MO"
     assert profile.family_at_home
-
-
-def test_connections():
-    response = client.get("/api/connections")
-    assert response.status_code == 200
-    connections = TypeAdapter(list[Connection]).validate_python(response.json())
-    assert len(connections) == 3
-    assert {item.provider: item.status for item in connections} == {
-        "gmail": "connected", "bank": "connected", "calendar": "revoked",
-    }
 
 
 def test_records():

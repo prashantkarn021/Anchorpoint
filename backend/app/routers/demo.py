@@ -16,6 +16,7 @@ from backend.app.routers.records import get_ledger, seed_fixtures
 from backend.app.seed.emails import CENTRAL, inject_emails
 from backend.app.seed.gmail_writer import GmailWriter
 from backend.app.seed.persona import Persona
+from backend.app.sync import bank_session
 from backend.app.vault.tokens import VaultError, default_vault
 
 log = logging.getLogger(__name__)
@@ -72,9 +73,14 @@ def inject(
     }
 
 
-def _sync_in_background() -> None:
+def _sync_in_background(reconnect_bank: Ledger | None = None) -> None:
     def run() -> None:
         try:
+            if reconnect_bank is not None:
+                # Plaid plants dates relative to the Item's creation, so reset makes a new Item.
+                from backend.app.routers.connections import connect_bank
+
+                connect_bank(reconnect_bank)
             sync.run_sync()
         except Exception as exc:  # noqa: BLE001 -- nothing is waiting on this thread
             log.warning("sync after reset failed: %s", type(exc).__name__)
@@ -96,5 +102,5 @@ def reset(ledger: Annotated[Ledger, Depends(get_ledger)]) -> dict:
             seeded = seed_fixtures(ledger)
     except TimeoutError:
         raise HTTPException(status_code=409, detail="A sync is still running; try again shortly") from None
-    _sync_in_background()
+    _sync_in_background(ledger if bank_session.current() is not None else None)
     return {"cleared": {"records": records, "events": events}, "fixtures_loaded": seeded, "sync": "started"}
