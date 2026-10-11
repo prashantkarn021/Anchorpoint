@@ -107,6 +107,11 @@ class PlaidConnector:
                           scopes=["transactions"], connected_at=datetime.now(UTC))
 
     def fetch_since(self, cursor: str | None) -> tuple[list[RawItem], str]:
+        """Blocking: the first sync can wait up to HISTORY_WAIT_S for sandbox history.
+
+        Call it off the event loop (asyncio.to_thread). The access token lives in memory only,
+        so a restart drops the connection; reset the demo after the last deploy.
+        """
         if not self._access_token:
             raise RuntimeError("not connected")
         start, deadline, last_count = cursor, time.monotonic() + HISTORY_WAIT_S, -1
