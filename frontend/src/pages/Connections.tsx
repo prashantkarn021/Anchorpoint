@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Trash2,
   Unplug,
-  Upload,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,7 +16,6 @@ import { useSearchParams } from "react-router";
 import { useConnections, useRevokeConnection, useStartConnection } from "../api/hooks";
 import type { Connection, Provider } from "../api/types";
 import { errorMessage, Modal, useToast } from "../components/overlay";
-import { UploadDialog } from "../components/UploadDialog";
 import {
   Badge,
   Button,
@@ -92,7 +90,8 @@ export const INFO: Record<Connectable, ProviderInfo> = {
   },
 };
 
-export const ORDER: Connectable[] = ["gmail", "calendar", "bank"];
+// Calendar has no connector yet; its card comes back when it does.
+export const ORDER: Connectable[] = ["gmail", "bank"];
 
 function statusBadge(c: Connection | undefined) {
   if (!c || c.status === "revoked") return <Badge>Not connected</Badge>;
@@ -401,7 +400,6 @@ export function Connections() {
   const q = useConnections();
   const [consent, setConsent] = useState<Connectable | null>(null);
   const [revoke, setRevoke] = useState<Connection | null>(null);
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [params, setParams] = useSearchParams();
   const toast = useToast();
 
@@ -465,32 +463,13 @@ export function Connections() {
         </div>
       )}
 
-      <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-        <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-sunken">
-          <Upload className="size-5 text-brand-700" aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-[0.9375rem] font-semibold text-ink">
-            Paper receipts, PDFs and screenshots
-          </h2>
-          <p className="mt-0.5 text-[0.8125rem] text-ink-3">
-            Snap gas, motel and hardware receipts, or screenshot a landlord or recruiter text. No
-            account needed.
-          </p>
-        </div>
-        <Button icon={Upload} onClick={() => setUploadOpen(true)}>
-          Upload
-        </Button>
-      </Card>
-
       <p className={clsx("text-xs text-ink-4")}>
-        Coming later: Outlook, Google Drive and payroll portals use the same connector. Web apps
-        can't read SMS, so forward texts or upload a screenshot.
+        Coming later: Google Calendar, Outlook, Google Drive, payroll portals and receipt uploads
+        use the same connector. Web apps can't read SMS.
       </p>
 
       <ConsentModal provider={consent} onClose={() => setConsent(null)} />
       <RevokeModal conn={revoke} onClose={() => setRevoke(null)} />
-      <UploadDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
     </div>
   );
 }
