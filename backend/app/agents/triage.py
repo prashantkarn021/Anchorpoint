@@ -8,7 +8,7 @@ extractor will (body + attachments, same cap), so an injection can't hide past a
 from pydantic import BaseModel, Field
 from strands import Agent
 
-from backend.app.agents.llm import make_model
+from backend.app.agents.llm import make_model, model_slot
 from backend.app.agents.prompts import TRIAGE_SYSTEM, item_text, wrap_document
 from backend.app.models import RawItem, RecordType
 
@@ -30,11 +30,12 @@ def enforce(r: TriageResult) -> TriageResult:
 def triage(item: RawItem) -> TriageResult:
     """Raises on model failure; the caller logs it and retries next sync (fallbacks: step 10)."""
     agent = Agent(model=make_model(), system_prompt=TRIAGE_SYSTEM, tools=[], callback_handler=None)
-    result = agent(
-        wrap_document(item_text(item)),
-        structured_output_model=TriageResult,
-        limits={"turns": 3},  # invalid output gets retried by Strands; cap it
-    )
+    with model_slot:
+        result = agent(
+            wrap_document(item_text(item)),
+            structured_output_model=TriageResult,
+            limits={"turns": 3},  # invalid output gets retried by Strands; cap it
+        )
     if result.structured_output is None:
         raise RuntimeError(f"triage gave no valid output (stop_reason={result.stop_reason})")
     return enforce(result.structured_output)

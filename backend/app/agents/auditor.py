@@ -14,7 +14,7 @@ import unicodedata
 from pydantic import BaseModel
 from strands import Agent
 
-from backend.app.agents.llm import make_model
+from backend.app.agents.llm import make_model, model_slot
 from backend.app.agents.prompts import AUDITOR_SYSTEM, wrap_document
 from backend.app.models import Assessment, Finding
 
@@ -89,7 +89,8 @@ def _payload(findings: list[Finding], assessment: Assessment | None) -> str:
 
 def _run_agent(prompt: str) -> _AuditorOut:
     agent = Agent(model=make_model(), system_prompt=AUDITOR_SYSTEM, tools=[], callback_handler=None)
-    result = agent(prompt, structured_output_model=_AuditorOut, limits={"turns": 3})
+    with model_slot:
+        result = agent(prompt, structured_output_model=_AuditorOut, limits={"turns": 3})
     if result.structured_output is None:
         raise RuntimeError(f"auditor gave no valid output (stop_reason={result.stop_reason})")
     return result.structured_output

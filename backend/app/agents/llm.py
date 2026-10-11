@@ -1,10 +1,16 @@
 import os
+import threading
 from typing import Any
 
 from dotenv import load_dotenv
 from strands.models.openai import OpenAIModel
 
 load_dotenv()  # local dev; in docker the env comes from compose
+
+MAX_CONCURRENT_CALLS = 4
+# Held around every agent call (triage, extractor, auditor), whatever threads the caller uses.
+# ponytail: per-process; one API process in the demo
+model_slot = threading.BoundedSemaphore(MAX_CONCURRENT_CALLS)
 
 
 class AkamaiModel(OpenAIModel):
