@@ -10,7 +10,11 @@ from strands import Agent
 
 from backend.app.agents.llm import CallBudget, make_model, model_slot
 from backend.app.agents.prompts import TRIAGE_SYSTEM, item_text, wrap_document
+from backend.app.common.hashing import content_hash
 from backend.app.models import RawItem, RecordType
+
+# ponytail: in-process dict like the extractor's; persist to disk if demo reset restarts the server
+_cache: dict[str, "TriageResult"] = {}
 
 
 class TriageResult(BaseModel):  # P1-internal (agreed with P2), not in models.py
@@ -28,14 +32,20 @@ def enforce(r: TriageResult) -> TriageResult:
 
 
 def triage(item: RawItem, budget: CallBudget | None = None) -> TriageResult:
-    """Raises on model failure or an exhausted budget; pipeline.ingest turns that into an event."""
+    """A cache hit makes no model request, so it costs no budget (plan §7: cache by content hash).
+    Raises on model failure or an exhausted budget; pipeline.ingest turns that into an event."""
+    text = item_text(item)
+    key = content_hash(text)  # same text the model sees, so same answer
+    if key in _cache:
+        return _cache[key].model_copy()  # callers can't mutate the cache
     agent = Agent(model=make_model(budget), system_prompt=TRIAGE_SYSTEM, tools=[], callback_handler=None)
     with model_slot:
         result = agent(
-            wrap_document(item_text(item)),
+            wrap_document(text),
             structured_output_model=TriageResult,
             limits={"turns": 3},  # invalid output gets retried by Strands; cap it
         )
     if result.structured_output is None:
         raise RuntimeError(f"triage gave no valid output (stop_reason={result.stop_reason})")
-    return enforce(result.structured_output)
+    _cache[key] = enforce(result.structured_output)  # only successful results are cached
+    return _cache[key].model_copy()

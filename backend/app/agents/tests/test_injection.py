@@ -101,6 +101,7 @@ def wire(monkeypatch):
     monkeypatch.setenv("INFERENCE_BASE_URL", "http://127.0.0.1:9/v1")
     monkeypatch.setenv("MODEL_ID", "test")
     monkeypatch.setattr(extractor, "_cache", {})
+    monkeypatch.setattr(triage, "_cache", {})  # each test starts with an empty triage cache
     state = {"requests": 0, "fail_first": 0}
 
     async def fake_request(self, *a, **kw):
@@ -185,7 +186,9 @@ def test_at_most_four_model_calls_in_flight(monkeypatch):
 
     monkeypatch.setattr(triage, "Agent", SlowAgent)
     monkeypatch.setattr(triage, "make_model", lambda budget=None: None)
-    threads = [threading.Thread(target=triage.triage, args=(_mail(RENT),)) for _ in range(10)]
+    monkeypatch.setattr(triage, "_cache", {})
+    # distinct texts: every thread must really call the model (no cache hits)
+    threads = [threading.Thread(target=triage.triage, args=(_mail(f"{RENT} #{n}"),)) for n in range(10)]
     for t in threads:
         t.start()
     for t in threads:
