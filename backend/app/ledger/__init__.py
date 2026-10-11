@@ -1,5 +1,6 @@
 """SQLite records with an append-only audit trail."""
 
+import json
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -91,10 +92,17 @@ class Ledger:
                 (record.source.provider, record.source.source_id),
             ).fetchone()
             created = row is None
+            previous_values = {}
             if row is not None:
                 existing = self._read_record(connection, row)
                 if existing.source.content_hash == record.source.content_hash:
                     return existing, False
+                old_fields = existing.model_dump(mode="json")
+                new_fields = record.model_dump(mode="json")
+                previous_values = {
+                    field: old_fields[field] for field in sorted(EDITABLE_FIELDS)
+                    if old_fields[field] != new_fields[field]
+                }
                 record = record.model_copy(update={
                     "id": existing.id, "user_status": existing.user_status,
                 })
@@ -102,7 +110,10 @@ class Ledger:
             self._append_event(connection, AuditEvent(
                 ts=datetime.now(UTC), actor="agent" if record.extracted_by == "agent" else "system",
                 action="extracted" if created else "edited", record_id=record.id,
-                detail="Record extracted from source." if created else "Source content changed on re-sync.",
+                detail="Record extracted from source." if created else (
+                    "Source content changed on re-sync. "
+                    + json.dumps({"previous_values": previous_values}, separators=(",", ":"))
+                ),
             ))
             row = connection.execute("SELECT * FROM records WHERE id = ?", (record.id,)).fetchone()
             return self._read_record(connection, row), created
@@ -166,7 +177,8 @@ class Ledger:
             raise ValueError("limit must be nonnegative")
         where = " WHERE id > ?" if after_id is not None else ""
         params = (after_id, limit) if after_id is not None else (limit,)
+        order = "ASC" if after_id is not None else "DESC"
         with self._connection() as connection:
             return [dict(row) for row in connection.execute(
-                "SELECT * FROM audit_events" + where + " ORDER BY id DESC LIMIT ?", params,
+                "SELECT * FROM audit_events" + where + f" ORDER BY id {order} LIMIT ?", params,
             )]
