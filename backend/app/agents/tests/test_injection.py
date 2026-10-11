@@ -69,10 +69,12 @@ def test_clean_email_produces_a_candidate(models):
     assert r.candidate.amount == 1150.0 and r.events == []
 
 
-def test_noise_produces_nothing(models):
+def test_noise_is_logged_as_skipped(models):
     models["triage"] = TriageResult(relevant=False, confidence=0.95)
-    r = ingest(_mail("30% off fall jackets"), PROFILE, CallBudget())
-    assert r.candidate is None and r.events == [] and models["extract_calls"] == 0
+    r = ingest(_mail("30% off fall jackets with code FALL30"), PROFILE, CallBudget())
+    assert r.candidate is None and models["extract_calls"] == 0
+    assert [e.action for e in r.events] == ["skipped"] and r.events[0].record_id is None
+    assert r.events[0].actor == "agent" and "FALL30" not in r.events[0].detail  # email text never echoed
 
 
 @pytest.mark.parametrize("text", [

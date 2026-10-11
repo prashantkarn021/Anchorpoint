@@ -1,6 +1,6 @@
 """Ingestion entry point for P2's sync: one non-bank RawItem -> optional CandidateRecord + AuditEvents.
 
-triage -> (suspicious? log ignored_suspicious, stop) -> (relevant? extract). Never raises on model
+triage -> (suspicious? log ignored_suspicious, stop) -> (irrelevant? log skipped, stop) -> extract. Never raises on model
 trouble: a model error or an exhausted per-sync request budget becomes an event and the item is
 retried next sync. The budget counts real model requests (every turn and retry) at the model
 boundary, see llm.AkamaiModel.stream. Bank items never come here (P2 maps them without the LLM).
@@ -64,7 +64,8 @@ def ingest(item: RawItem, profile: Profile, budget: CallBudget) -> Ingested:
     if t.suspicious:
         return Ingested(events=[_event(item, "ignored_suspicious", "instructions to an AI were ignored")])
     if not t.relevant:
-        return Ingested()  # noise: no record, no feed entry
+        # noise: no record, but one feed entry so the agent visibly skips it (plan §7)
+        return Ingested(events=[_event(item, "skipped", "not tax-home evidence")])
     # ponytail: if the budget runs out here, this item's triage requests were spent for nothing;
     # it is re-triaged next sync (a triage cache would save that)
     try:
