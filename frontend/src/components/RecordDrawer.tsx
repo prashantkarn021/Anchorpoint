@@ -62,7 +62,7 @@ export function RecordChip({ id, label }: { id: string; label?: string }) {
     <button
       type="button"
       onClick={() => open(id)}
-      className="inline-flex max-w-full items-center gap-1 rounded-md border border-line bg-sunken px-1.5 py-px align-baseline font-mono text-[11.5px] text-brand-700 hover:border-brand-200 hover:bg-brand-50"
+      className="inline-flex max-w-full items-center gap-1 rounded-md border border-line bg-sunken px-1.5 py-px align-baseline font-mono text-[0.7188rem] text-brand-700 hover:border-brand-200 hover:bg-brand-50"
       title="Open record and its source"
     >
       <Fingerprint className="size-3 shrink-0" aria-hidden />
@@ -114,7 +114,7 @@ function DrawerBody({ id, onClose }: { id: string; onClose: () => void }) {
     <>
       <header className="flex items-start justify-between gap-3 border-b border-line px-6 pt-5 pb-4">
         <div className="min-w-0">
-          <p className="font-mono text-[11.5px] text-ink-4">{id}</p>
+          <p className="font-mono text-[0.7188rem] text-ink-4">{id}</p>
           <h2 className="mt-1 truncate text-lg font-semibold tracking-tight">
             {r ? recordTypeLabel(r.type) : "Record"}
             {r?.amount != null ? (
@@ -154,7 +154,7 @@ function DrawerBody({ id, onClose }: { id: string; onClose: () => void }) {
         ) : r ? (
           <div className="space-y-6 px-6 py-5">
             {r.needs_review && r.user_status === "pending" ? (
-              <div className="flex gap-3 rounded-lg border border-warn/20 bg-warn-bg px-4 py-3 text-[13px] text-warn">
+              <div className="flex gap-3 rounded-lg border border-warn/20 bg-warn-bg px-4 py-3 text-[0.8125rem] text-warn">
                 <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <p>
                   <span className="font-medium">Needs a human check.</span> The agent was not sure
@@ -164,7 +164,7 @@ function DrawerBody({ id, onClose }: { id: string; onClose: () => void }) {
               </div>
             ) : null}
             {r.user_status === "rejected" ? (
-              <div className="flex gap-3 rounded-lg border border-line bg-sunken px-4 py-3 text-[13px] text-ink-2">
+              <div className="flex gap-3 rounded-lg border border-line bg-sunken px-4 py-3 text-[0.8125rem] text-ink-2">
                 <CircleX className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <p>Rejected: this record is excluded from your score and the CPA packet.</p>
               </div>
@@ -250,7 +250,7 @@ function SourceSection({ r }: { r: LedgerRecord }) {
           <ProviderTag provider={s.provider} />
           <span className="text-xs text-ink-3">Received {dateTime(s.received_at)}</span>
         </div>
-        <blockquote className="relative px-4 py-3.5 text-[13.5px] leading-relaxed text-ink-2">
+        <blockquote className="relative px-4 py-3.5 text-[0.8438rem] leading-relaxed text-ink-2">
           <Quote className="absolute top-3 left-4 size-3.5 text-ink-4" aria-hidden />
           <p className="pl-6 whitespace-pre-line">{s.snippet}</p>
         </blockquote>
@@ -281,7 +281,7 @@ function SourceSection({ r }: { r: LedgerRecord }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[130px_1fr] gap-3 py-2 text-[13.5px]">
+    <div className="grid grid-cols-[8.125rem_1fr] gap-3 py-2 text-[0.8438rem]">
       <dt className="text-ink-3">{label}</dt>
       <dd className="min-w-0 break-words text-ink">{children}</dd>
     </div>
@@ -322,7 +322,7 @@ function HistorySection({ r }: { r: LedgerRecord }) {
     <section>
       <SectionTitle>Audit trail</SectionTitle>
       {events.length === 0 ? (
-        <p className="text-[13px] text-ink-3">No events yet.</p>
+        <p className="text-[0.8125rem] text-ink-3">No events yet.</p>
       ) : (
         <ol className="relative space-y-3 border-l border-line pl-5">
           {events.map((e, i) => {
@@ -337,18 +337,18 @@ function HistorySection({ r }: { r: LedgerRecord }) {
                     : "text-ink-3";
             return (
               <li key={`${e.ts}-${i}`} className="relative">
-                <span className="absolute top-0.5 -left-[29px] grid size-[18px] place-items-center rounded-full border border-line bg-surface">
+                <span className="absolute top-0.5 -left-[1.8125rem] grid size-[1.125rem] place-items-center rounded-full border border-line bg-surface">
                   {e.action === "confirmed" ? (
                     <CircleCheck className="size-3 text-good" aria-hidden />
                   ) : (
                     <Icon className={clsx("size-3", tone)} aria-hidden />
                   )}
                 </span>
-                <p className="text-[13px] text-ink">
+                <p className="text-[0.8125rem] text-ink">
                   <span className="font-medium">{actionLabel(e.action)}</span>
                   <span className="text-ink-3"> · {ACTOR_LABEL[e.actor] ?? e.actor}</span>
                 </p>
-                <p className="text-[13px] text-ink-2">{e.detail}</p>
+                <p className="text-[0.8125rem] text-ink-2">{e.detail}</p>
                 <time className="text-xs text-ink-4" dateTime={e.ts}>
                   {dateTime(e.ts)}
                 </time>
@@ -416,7 +416,7 @@ function EditForm({
         Your edit is logged in the audit trail. The original source stays unchanged.
       </p>
       <label className="block">
-        <span className="mb-1 block text-[13px] font-medium text-ink-2">Type</span>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-ink-2">Type</span>
         <select
           className={input}
           value={type}
@@ -431,7 +431,7 @@ function EditForm({
       </label>
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
-          <span className="mb-1 block text-[13px] font-medium text-ink-2">Date</span>
+          <span className="mb-1 block text-[0.8125rem] font-medium text-ink-2">Date</span>
           <input
             type="date"
             className={input}
@@ -441,7 +441,7 @@ function EditForm({
           />
         </label>
         <label className="block">
-          <span className="mb-1 block text-[13px] font-medium text-ink-2">Amount (USD)</span>
+          <span className="mb-1 block text-[0.8125rem] font-medium text-ink-2">Amount (USD)</span>
           <input
             inputMode="decimal"
             className={clsx(input, "tnum")}
@@ -452,15 +452,15 @@ function EditForm({
         </label>
       </div>
       <label className="block">
-        <span className="mb-1 block text-[13px] font-medium text-ink-2">Payee</span>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-ink-2">Payee</span>
         <input className={input} value={payee} onChange={(e) => setPayee(e.target.value)} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-[13px] font-medium text-ink-2">Address</span>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-ink-2">Address</span>
         <input className={input} value={address} onChange={(e) => setAddress(e.target.value)} />
       </label>
       <label className="block">
-        <span className="mb-1 block text-[13px] font-medium text-ink-2">Tax-home factor</span>
+        <span className="mb-1 block text-[0.8125rem] font-medium text-ink-2">Tax-home factor</span>
         <select className={input} value={factor} onChange={(e) => setFactor(e.target.value)}>
           <option value="">Context (not scored)</option>
           <option value="1">Factor 1: {FACTOR_LONG[1]}</option>
@@ -469,7 +469,7 @@ function EditForm({
         </select>
       </label>
       {error ? (
-        <p role="alert" className="text-[13px] text-high">
+        <p role="alert" className="text-[0.8125rem] text-high">
           {error}
         </p>
       ) : null}

@@ -89,6 +89,9 @@
 
 @layer base {
   html {
+    /* Everything is sized in rem, so this scales text, spacing and icons together. A percentage
+       keeps the user's browser font setting; media-query breakpoints are unaffected. */
+    font-size: 112.5%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;

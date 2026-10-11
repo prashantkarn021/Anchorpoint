@@ -61,7 +61,7 @@ export function Packet() {
         description="One file for your tax professional: your assessment, every finding, and an evidence index where each record links back to its source."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_21.25rem]">
         <Card>
           <CardHeader
             title="What's inside"
@@ -77,7 +77,7 @@ export function Packet() {
             <div className="divide-y divide-line border-t border-line">
               <div className="flex items-start gap-3 px-5 py-4">
                 <FileText className="mt-0.5 size-4 text-ink-3" aria-hidden />
-                <div className="text-[13.5px]">
+                <div className="text-[0.8438rem]">
                   <p className="font-medium text-ink">Tax-home assessment</p>
                   <p className="text-ink-2">
                     Score {assessment.data.score}/100 (
@@ -88,7 +88,7 @@ export function Packet() {
               </div>
               <div className="flex items-start gap-3 px-5 py-4">
                 <TriangleAlert className="mt-0.5 size-4 text-ink-3" aria-hidden />
-                <div className="min-w-0 flex-1 text-[13.5px]">
+                <div className="min-w-0 flex-1 text-[0.8438rem]">
                   <p className="font-medium text-ink">
                     {assessment.data.findings.length} findings with recommended actions
                   </p>
@@ -104,7 +104,7 @@ export function Packet() {
               </div>
               <div className="flex items-start gap-3 px-5 py-4">
                 <Link2 className="mt-0.5 size-4 text-ink-3" aria-hidden />
-                <div className="min-w-0 flex-1 text-[13.5px]">
+                <div className="min-w-0 flex-1 text-[0.8438rem]">
                   <p className="font-medium text-ink">
                     Evidence index: {counted.length} records, each traced to its source
                   </p>
@@ -127,8 +127,8 @@ export function Packet() {
             <span className="grid size-11 place-items-center rounded-xl border border-line bg-sunken">
               <FolderArchive className="size-5 text-brand-700" aria-hidden />
             </span>
-            <h2 className="mt-3 text-[15px] font-semibold text-ink">Generate packet</h2>
-            <dl className="tnum mt-3 space-y-1.5 text-[13px]">
+            <h2 className="mt-3 text-[0.9375rem] font-semibold text-ink">Generate packet</h2>
+            <dl className="tnum mt-3 space-y-1.5 text-[0.8125rem]">
               <div className="flex justify-between">
                 <dt className="text-ink-3">Confirmed by you</dt>
                 <dd className="font-medium text-ink">{confirmed}</dd>
