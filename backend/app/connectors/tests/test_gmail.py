@@ -1,9 +1,12 @@
 import base64
+import io
 import time
+from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 
+from backend.app.connectors import gmail, google_oauth
 from backend.app.connectors.gmail import API, BACKFILL_WINDOW, GmailConnector
 from backend.app.connectors.google_oauth import REVOKE_URL, TOKEN_URL, GoogleAuthError
 
@@ -12,6 +15,19 @@ CONFIG = {
     "client_secret": "client-secret",
     "redirect_uri": "http://localhost:8000/api/oauth/callback",
 }
+
+
+@pytest.mark.parametrize("status", [404, 429, 500])
+def test_http_json_sets_http_error_status(monkeypatch, status):
+    def urlopen(request, timeout):
+        raise HTTPError(request.full_url, status, "Synthetic error", {}, io.BytesIO(b"error"))
+
+    monkeypatch.setattr(google_oauth.urllib.request, "urlopen", urlopen)
+
+    with pytest.raises(GoogleAuthError) as caught:
+        google_oauth.http_json("GET", f"{API}/messages/m1")
+
+    assert caught.value.status == status
 
 
 class MemoryStore:
@@ -31,9 +47,10 @@ class MemoryStore:
 class FakeGoogle:
     """Stands in for Google's HTTP API and records every call."""
 
-    def __init__(self, messages=None):
+    def __init__(self, messages=None, message_errors=None):
         self.calls = []
         self.messages = {message["id"]: message for message in messages or []}
+        self.message_errors = message_errors or {}
         self.token_reply = {
             "access_token": "access-1",
             "refresh_token": "refresh-1",
@@ -51,7 +68,13 @@ class FakeGoogle:
             return {"messages": [{"id": message_id} for message_id in self.messages]}
         if "/attachments/" in url:
             return {"data": b64("attached text")}
-        return self.messages[url.rsplit("/", 1)[-1]]
+        message_id = url.rsplit("/", 1)[-1]
+        if message_id in self.message_errors:
+            raise GoogleAuthError(
+                f"Google returned HTTP {self.message_errors[message_id]}",
+                status=self.message_errors[message_id],
+            )
+        return self.messages[message_id]
 
 
 def b64(text):
@@ -240,3 +263,81 @@ def test_revoke_tells_google_and_drops_tokens():
     assert store.get("gmail:tokens") is None
     assert google.calls[-1][1] == REVOKE_URL
     assert google.calls[-1][3] == {"token": "refresh-1"}
+
+
+def test_finish_auth_rejects_non_ascii_state_with_auth_error():
+    store = MemoryStore()
+    connector = GmailConnector(store, FakeGoogle(), **CONFIG)
+    connector.start_auth()
+
+    with pytest.raises(GoogleAuthError):
+        connector.finish_auth({"code": "auth-code", "state": "gmail.é"})
+    assert store.get("gmail:tokens") is None
+
+
+def test_fetch_since_skips_deleted_message_and_advances_cursor():
+    google = FakeGoogle(
+        [
+            message("m1", 1_760_000_100, "Rent", "Synthetic rent receipt"),
+            message("deleted", 1_760_000_200, "Bill", "Synthetic deleted bill"),
+            message("m3", 1_760_000_300, "Bill", "Synthetic utility bill"),
+        ],
+        message_errors={"deleted": 404},
+    )
+    connector, _ = connected(google)
+
+    items, cursor = connector.fetch_since("1760000000")
+
+    assert [item.source_id for item in items] == ["m1", "m3"]
+    assert cursor == "1760000300"
+
+
+@pytest.mark.parametrize("status", [429, 500])
+def test_fetch_since_raises_on_message_errors_other_than_404(status):
+    google = FakeGoogle(
+        [message("m1", 1_760_000_100, "Rent", "Synthetic rent receipt")],
+        message_errors={"m1": status},
+    )
+    connector, _ = connected(google)
+
+    with pytest.raises(GoogleAuthError, match=f"HTTP {status}"):
+        connector.fetch_since(None)
+
+
+def test_fetch_since_refreshes_once_before_thread_pool(monkeypatch):
+    google = FakeGoogle([
+        message(f"m{i}", 1_760_000_100 + i, "Bill", "Synthetic utility bill")
+        for i in range(8)
+    ])
+    connector, store = connected(google)
+    tokens = store.get("gmail:tokens")
+    store.set("gmail:tokens", {**tokens, "expires_at": time.time() - 10})
+    google.token_reply = {"access_token": "access-2", "expires_in": 3600}
+    google.calls.clear()
+    # Isolate the worker boundary: listing itself normally obtains an access token.
+    monkeypatch.setattr(connector, "_list_ids", lambda query: list(google.messages))
+    original_pool = gmail.ThreadPoolExecutor
+
+    def refresh_calls():
+        return [call for call in google.calls if call[1] == TOKEN_URL]
+
+    def checked_pool(*args, **kwargs):
+        assert len(refresh_calls()) == 1, "Refresh must happen before the thread pool"
+        assert refresh_calls()[0][3]["grant_type"] == "refresh_token"
+        return original_pool(*args, **kwargs)
+
+    monkeypatch.setattr(gmail, "ThreadPoolExecutor", checked_pool)
+
+    items, _ = connector.fetch_since(None)
+
+    assert len(items) == 8
+    assert len(refresh_calls()) == 1
+    assert all(call[4] == "access-2" for call in google.calls if call[0] == "GET")
+
+
+def test_start_auth_does_not_include_previously_granted_scopes():
+    connector = GmailConnector(MemoryStore(), FakeGoogle(), **CONFIG)
+
+    query = parse_qs(urlparse(connector.start_auth()).query)
+
+    assert "include_granted_scopes" not in query

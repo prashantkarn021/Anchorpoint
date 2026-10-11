@@ -21,6 +21,10 @@ EXPIRY_MARGIN_S = 60
 class GoogleAuthError(Exception):
     """OAuth or API failure. The message never contains a token or secret."""
 
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status: int | None = status
+
 
 class TokenStore(Protocol):
     """Where tokens live. The vault implements this; values must be encrypted at rest."""
@@ -53,7 +57,9 @@ def http_json(
     except urllib.error.HTTPError as exc:
         # Google's error bodies name the problem (invalid_grant, ...) and hold no secrets.
         detail = exc.read().decode("utf-8", "replace")[:300]
-        raise GoogleAuthError(f"Google returned HTTP {exc.code}: {detail}") from None
+        raise GoogleAuthError(
+            f"Google returned HTTP {exc.code}: {detail}", status=exc.code
+        ) from None
     except urllib.error.URLError as exc:
         raise GoogleAuthError(f"Could not reach Google: {exc.reason}") from None
     return json.loads(body) if body else {}
@@ -105,7 +111,6 @@ class GoogleOAuth:
             # offline + consent is what makes Google return a refresh token
             "access_type": "offline",
             "prompt": "consent",
-            "include_granted_scopes": "true",
         }
         return f"{AUTH_URL}?{urllib.parse.urlencode(query)}"
 
@@ -114,8 +119,8 @@ class GoogleOAuth:
         if params.get("error"):
             raise GoogleAuthError(f"Google sign-in was not completed: {params['error']}")
         expected = (self.store.get(self._state_key) or {}).get("state", "")
-        received = str(params.get("state", ""))
-        if not expected or not secrets.compare_digest(expected, received):
+        received = str(params.get("state", "")).encode("utf-8")
+        if not expected or not secrets.compare_digest(expected.encode("utf-8"), received):
             raise GoogleAuthError("OAuth state did not match; start the connection again")
         self.store.delete(self._state_key)
         if not params.get("code"):
