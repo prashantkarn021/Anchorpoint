@@ -1,5 +1,6 @@
 """Turn what a connector or the extractor produced into ledger Records. No model calls here."""
 
+import re
 from datetime import timedelta, timezone
 
 from backend.app.agents.extractor import needs_review
@@ -75,8 +76,13 @@ def bank_record_type(merchant: str, home_city: str = "", city: str = "") -> Reco
         if any(needle in name for needle in needles):
             return record_type
     # Fuel bought in the home city is a sign of being home.
-    place = f"{name}{city.upper()} "
-    if home_city and home_city.upper() in place and any(word in name for word in ("FUEL", "GAS ")):
+    home = " ".join(home_city.upper().split())
+    location = " ".join(city.upper().split())
+    # Prefer the structured location; a descriptor must not override an away-city purchase.
+    at_home = location == home if location else bool(
+        re.search(rf"(?<!\w){re.escape(home)}(?!\w)", " ".join(name.split()))
+    )
+    if home and at_home and any(word in name for word in ("FUEL", "GAS ")):
         return "trip_home"
     return None
 

@@ -33,7 +33,7 @@ class SyncResult(BaseModel):
     skipped: int = 0
     suspicious: int = 0
     waiting: int = 0  # items the model could not get to; retried next sync
-    cached: int = 0  # records restored from the extraction cache, no model call
+    cached: int = 0  # records restored from the extraction cache, no extraction model call
 
 
 def _event(ledger: Ledger, action: str, detail: str, actor: str = "agent") -> None:
@@ -93,7 +93,7 @@ def sync_gmail(
     if result.cached:
         # Plan §7: a reset repopulates from the cache in seconds; say so honestly, once per sync
         _event(ledger, "cached",
-               f"{provider}: {result.cached} record(s) restored from cached extraction (no model call)")
+               f"{provider}: {result.cached} record(s) restored from cached extraction (no extraction model call)")
 
     note = None
     if result.waiting:
