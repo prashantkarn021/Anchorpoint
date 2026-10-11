@@ -3,7 +3,7 @@
 EXPECTED maps source_id -> (relevant, doc_type, suspicious) for triage.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 
 from backend.app.models import Attachment, Metro, Profile, RawItem
 
@@ -104,6 +104,45 @@ SAMPLES = [
         11,
     ),
 ]
+
+RENT_MERCHANT = "WESTPORT PROPERTY MGMT ACH"
+RENT_MISSING_MO = -4  # maya.yaml: the planted R1 hole
+
+
+def mo(today: date, n: int, day: int) -> date:
+    """maya.yaml `mo: n, day: d`: day d of the calendar month n months from today's."""
+    y, m = divmod(today.year * 12 + today.month - 1 + n, 12)
+    return date(y, m + 1, day)
+
+
+def bank_transactions(today: date) -> list[dict]:
+    """Maya-shaped subset of maya.yaml `bank:` (PR #7), Plaid custom-user format. Positive = money out."""
+    rent = [(mo(today, n, 2), 1150.00, RENT_MERCHANT) for n in range(-12, 0) if n != RENT_MISSING_MO]
+    def d(n: int) -> date:
+        return today - timedelta(days=n)
+
+    other = [
+        (mo(today, -3, 18), 92.31, "EVERGREEN POWER & LIGHT AUTOPAY"),
+        (mo(today, -2, 18), 71.08, "EVERGREEN POWER & LIGHT AUTOPAY"),
+        (mo(today, -1, 18), 64.55, "EVERGREEN POWER & LIGHT AUTOPAY"),
+        (mo(today, -2, 23), 64.99, "PLAINSNET INTERNET"),
+        (mo(today, -1, 23), 64.99, "PLAINSNET INTERNET"),
+        (mo(today, -2, 1), 1890.00, "STAYLOCAL FURNISHED RENTALS"),
+        (mo(today, -1, 1), 1890.00, "STAYLOCAL FURNISHED RENTALS"),
+        (d(4), -1680.00, "NORTHBRIDGE STAFFING STIPEND"),
+        (d(11), -1680.00, "NORTHBRIDGE STAFFING STIPEND"),
+        (d(18), -1680.00, "NORTHBRIDGE STAFFING STIPEND"),
+        (d(25), 246.80, "SKYLINE AIR"),
+        (d(24), 47.12, "QUIKFUEL KANSAS CITY MO"),
+        (d(2), 63.40, "PEAKSIDE GROCER DENVER"),  # fictional (no real brands)
+        (d(6), 88.15, "PEAKSIDE GROCER DENVER"),
+    ]
+    return [
+        {"date_transacted": t.isoformat(), "date_posted": t.isoformat(), "amount": a,
+         "description": desc, "currency": "USD"}
+        for t, a, desc in rent + other
+    ]
+
 
 EXPECTED = {
     "sample-rent": (True, "rent_payment", False),

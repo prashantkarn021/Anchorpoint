@@ -54,6 +54,7 @@ Copy `.env.example` to `.env`. `.env` is gitignored: never commit it and never p
 | `SITE_ADDRESS`                                        | P4    | `:80` locally; the bare domain on the Linode (turns on HTTPS) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`            | P4    | Google OAuth web client                                       |
 | `OAUTH_REDIRECT_URI`                                  | P4    | Must match a redirect URI registered on that client           |
+| `FRONTEND_URL`                                        | P4    | Where the OAuth callback returns to; empty on the Linode      |
 | `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV`        | P1    | Plaid Sandbox                                                 |
 | `INFERENCE_BASE_URL`, `INFERENCE_API_KEY`, `MODEL_ID` | P1    | Akamai hosted inference                                       |
 | `TOKEN_ENC_KEY`                                       | P2    | Fernet key for the token vault                                |
