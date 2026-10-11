@@ -145,8 +145,9 @@ def main() -> None:
             print(f"moved {writer.clear()} existing message(s) to the trash", flush=True)
         ids = writer.insert_all(emails, persona.profile["name"], address)
         print(f"inserted {len(ids)} emails")
-        writer.oauth.revoke()
-        print("seeder grant revoked")
+        # Deliberately no revoke. Google keeps one grant per user per Cloud project, shared by
+        # every OAuth client in it, so revoking the seeder's token also revokes the server's
+        # Gmail, Calendar and inject grants. The token is in memory only and dies with this run.
     except GoogleAuthError as exc:
         sys.exit(f"SEED FAILED: {exc}")
     print("SEED DONE")

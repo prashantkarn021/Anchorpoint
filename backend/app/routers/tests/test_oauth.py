@@ -89,7 +89,8 @@ def test_callback_sanitizes_the_error_code(connect):
 def test_callback_rejects_another_providers_state(connect):
     connector = FakeConnector()
 
-    response = connect(connector).get("/api/oauth/callback?code=abc&state=calendar.xyz")
+    # calendar now has its own connector (see test_calendar_routes.py); "drive" is still unknown
+    response = connect(connector).get("/api/oauth/callback?code=abc&state=drive.xyz")
 
     assert response.headers["location"] == "/connections?error=unknown_provider"
     assert connector.finished_with is None

@@ -67,8 +67,8 @@ export const INFO: Record<Connectable, ProviderInfo> = {
     tagline: "Assignment dates, flights home, contract end dates",
     benefit:
       "Assignment blocks and trips home build your one-year clock and prove you go home between contracts.",
-    reads: ["Event titles, dates and locations from the last 12 months"],
-    never: ["Create, edit or delete events", "Read event guests or attachments"],
+    reads: ["Event titles and dates from the last 12 months"],
+    never: ["Create, edit or delete events", "Read event guests, locations or attachments"],
     stores: "Event dates and title snippets, with the event ID as the source.",
     scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
     via: "Google sign-in",
@@ -90,8 +90,7 @@ export const INFO: Record<Connectable, ProviderInfo> = {
   },
 };
 
-// Calendar has no connector yet; its card comes back when it does.
-export const ORDER: Connectable[] = ["gmail", "bank"];
+export const ORDER: Connectable[] = ["gmail", "calendar", "bank"];
 
 function statusBadge(c: Connection | undefined) {
   if (!c || c.status === "revoked") return <Badge>Not connected</Badge>;
@@ -464,8 +463,8 @@ export function Connections() {
       )}
 
       <p className={clsx("text-xs text-ink-4")}>
-        Coming later: Google Calendar, Outlook, Google Drive and payroll portals
-        use the same connector. Web apps can't read SMS.
+        Coming later: Outlook, Google Drive and payroll portals use the same connector. Web apps
+        can't read SMS.
       </p>
 
       <ConsentModal provider={consent} onClose={() => setConsent(null)} />
