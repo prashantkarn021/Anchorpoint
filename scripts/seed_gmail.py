@@ -23,6 +23,9 @@ from backend.app.seed.emails import generate
 from backend.app.seed.gmail_writer import SCOPES, GmailWriter
 from backend.app.seed.persona import Persona
 
+# What POST /api/demo/inject needs: add a message, nothing else.
+INSERT_SCOPES = ["https://www.googleapis.com/auth/gmail.insert"]
+
 PORT = 8765
 WAIT_SECONDS = 600
 
@@ -70,14 +73,14 @@ def wait_for_callback() -> dict:
     return received
 
 
-def sign_in(client_file: str) -> GoogleOAuth:
+def sign_in(client_file: str, scopes: list[str] = SCOPES) -> GoogleOAuth:
     with open(client_file, encoding="utf-8") as handle:
         client = json.load(handle)
     if "installed" not in client:
         sys.exit("That is not a Desktop-app OAuth client. Do not seed with the app's web client.")
     oauth = GoogleOAuth(
         "seed",
-        SCOPES,
+        scopes,
         MemoryStore(),
         client_id=client["installed"]["client_id"],
         client_secret=client["installed"]["client_secret"],
@@ -106,7 +109,25 @@ def main() -> None:
     parser.add_argument("--client", help="seeder OAuth client JSON (Desktop app)")
     parser.add_argument("--clear", action="store_true", help="trash everything in the inbox first")
     parser.add_argument("--dry-run", action="store_true", help="generate and summarize only")
+    parser.add_argument(
+        "--grant-inject",
+        metavar="FILE",
+        help="sign in with the insert-only scope and write the token to FILE, to be loaded "
+        "into the server vault as seed:tokens; seeds nothing",
+    )
     args = parser.parse_args()
+
+    if args.grant_inject:
+        if not args.client:
+            sys.exit("--client is required with --grant-inject")
+        try:
+            oauth = sign_in(args.client, INSERT_SCOPES)
+        except GoogleAuthError as exc:
+            sys.exit(f"GRANT FAILED: {exc}")
+        with open(args.grant_inject, "w", encoding="utf-8") as handle:
+            json.dump(oauth.store.get("seed:tokens"), handle)
+        print("insert-only token written; load it into the vault, then delete the file")
+        return
 
     persona = Persona.load(args.persona)
     emails = generate(persona)
