@@ -103,3 +103,10 @@ def test_fetch_requires_connection(monkeypatch):
     c._access_token = None
     with pytest.raises(RuntimeError):
         c.fetch_since(None)
+
+
+def test_to_raw_item_keeps_plaids_location_city():
+    t = _t("t3", amount=47.12)
+    t.location = NS(city="Kansas City", region="MO")
+    assert to_raw_item(t).meta["city"] == "Kansas City"
+    assert to_raw_item(_t("t4")).meta["city"] is None  # no location object: no crash

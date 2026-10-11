@@ -33,6 +33,7 @@ class SyncResult(BaseModel):
     skipped: int = 0
     suspicious: int = 0
     waiting: int = 0  # items the model could not get to; retried next sync
+    cached: int = 0  # records restored from the extraction cache, no extraction model call
 
 
 def _event(ledger: Ledger, action: str, detail: str, actor: str = "agent") -> None:
@@ -79,6 +80,7 @@ def sync_gmail(
             ledger.upsert_record(record_from_candidate(item, outcome.candidate))
             state.mark(provider, item.source_id, "record")
             result.records += 1
+            result.cached += outcome.cached
         elif "ignored_suspicious" in actions:
             state.mark(provider, item.source_id, "suspicious")
             result.suspicious += 1
@@ -87,6 +89,11 @@ def sync_gmail(
                 _event(ledger, "skipped", f"{provider}:{item.source_id}: not evidence ({_sender(item)})")
             state.mark(provider, item.source_id, "skipped")
             result.skipped += 1
+
+    if result.cached:
+        # Plan §7: a reset repopulates from the cache in seconds; say so honestly, once per sync
+        _event(ledger, "cached",
+               f"{provider}: {result.cached} record(s) restored from cached extraction (no extraction model call)")
 
     note = None
     if result.waiting:

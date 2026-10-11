@@ -1,5 +1,6 @@
 """Turn what a connector or the extractor produced into ledger Records. No model calls here."""
 
+import re
 from datetime import timedelta, timezone
 
 from backend.app.agents.extractor import needs_review
@@ -64,14 +65,24 @@ def record_from_candidate(item: RawItem, candidate: CandidateRecord) -> Record:
     )
 
 
-def bank_record_type(merchant: str, home_city: str = "") -> RecordType | None:
-    """Which kind of evidence a bank descriptor is, or None for everyday spending."""
+def bank_record_type(merchant: str, home_city: str = "", city: str = "") -> RecordType | None:
+    """Which kind of evidence a bank descriptor is, or None for everyday spending.
+
+    `city` is Plaid's location city. It only feeds the home-city fuel check, never BANK_RULES:
+    a coffee in "Brentwood" must not match "RENT".
+    """
     name = f" {merchant.upper()} "
     for needles, record_type in BANK_RULES:
         if any(needle in name for needle in needles):
             return record_type
     # Fuel bought in the home city is a sign of being home.
-    if home_city and home_city.upper() in name and any(word in name for word in ("FUEL", "GAS ")):
+    home = " ".join(home_city.upper().split())
+    location = " ".join(city.upper().split())
+    # Prefer the structured location; a descriptor must not override an away-city purchase.
+    at_home = location == home if location else bool(
+        re.search(rf"(?<!\w){re.escape(home)}(?!\w)", " ".join(name.split()))
+    )
+    if home and at_home and any(word in name for word in ("FUEL", "GAS ")):
         return "trip_home"
     return None
 
@@ -79,7 +90,9 @@ def bank_record_type(merchant: str, home_city: str = "") -> RecordType | None:
 def record_from_bank(item: RawItem, home_city: str = "") -> Record | None:
     """A bank transaction -> Record, or None when it is not tax-home evidence. Money out only."""
     amount = float(item.meta.get("amount", 0))
-    record_type = bank_record_type(str(item.meta.get("merchant", "")), home_city)
+    # Plaid keeps the place in meta["city"], not in the descriptor ("QUIKFUEL" + "Kansas City")
+    record_type = bank_record_type(str(item.meta.get("merchant", "")), home_city,
+                                   str(item.meta.get("city") or ""))
     if record_type is None or amount <= 0:
         return None
     return Record(
