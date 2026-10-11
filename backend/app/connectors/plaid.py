@@ -66,7 +66,10 @@ def to_raw_item(t) -> RawItem:
         text=f"{t.date.isoformat()}  {t.name}  {abs(amount):.2f} {t.iso_currency_code or 'USD'} "
              f"({'debit' if amount > 0 else 'credit'})",
         meta={"merchant": t.name, "merchant_name": t.merchant_name, "amount": amount, "date": t.date.isoformat(),
-              "account_id": t.account_id, "iso_currency_code": t.iso_currency_code},
+              "account_id": t.account_id, "iso_currency_code": t.iso_currency_code,
+              # Plaid strips the place from `name` ("QUIKFUEL KANSAS CITY MO" -> "QUIKFUEL")
+              # but keeps it here; the bank mapper needs it for fuel-in-home-city trips
+              "city": getattr(getattr(t, "location", None), "city", None)},
     )
 
 
