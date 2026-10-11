@@ -95,12 +95,13 @@ def run_sync() -> list[SyncResult]:
         raise TimeoutError("a sync is still running")
     try:
         results = []
-        gmail = GmailConnector(default_vault())
-        if gmail.oauth.is_connected():
-            results.append(sync_gmail(gmail, _ledger(), _state(), _profile()))
+        # Bank first: it needs no model and no Gmail, so a Gmail hiccup cannot hold it up.
         bank = bank_session.current()
         if bank is not None:
             results.append(sync_bank(bank, _ledger(), _state(), _profile()))
+        gmail = GmailConnector(default_vault())
+        if gmail.oauth.is_connected():
+            results.append(sync_gmail(gmail, _ledger(), _state(), _profile()))
         return results
     finally:
         _running.release()
