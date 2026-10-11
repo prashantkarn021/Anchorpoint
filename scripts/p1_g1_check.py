@@ -9,9 +9,10 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
-from app.agents.llm import make_model
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root, team convention
 from strands import Agent
+
+from backend.app.agents.llm import make_model
 
 
 class Payment(BaseModel):
