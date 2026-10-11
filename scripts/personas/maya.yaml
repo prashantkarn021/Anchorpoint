@@ -86,13 +86,20 @@ offer:
     weekly_lodging_stipend: 1750
     weekly_mie_stipend: 630          # total $340/day (ceiling $329); M&IE $90/day (ceiling $86)
 
-# Gaps between contracts. A trip produces a flight email out and back, a calendar
-# event and airline + home-area fuel transactions.
+# Gaps between contracts. R3 counts a gap of 3+ days between completed/active
+# assignments and wants a trip_home record dated inside it (boundary days included).
+# So every trip artefact (flight email, calendar event, airline and fuel transactions)
+# is dated between depart and return, and both of those sit inside the break.
 gaps:
-  - { after: tucson,   before: denver-1, trip_home: false }   # R3 warn
-  - { after: denver-1, before: denver-2, trip_home: true }
-  - { after: denver-2, before: denver-3, trip_home: true }
+  # No trip: Maya drives straight to Denver. Nothing in this gap may look like a
+  # trip home, so everyday spending here is on the road and in Denver, never Kansas City.
+  - { after: tucson, before: denver-1, trip_home: false, everyday_city: Denver }   # R3 warn
+  - { after: denver-1, before: denver-2, trip_home: true,
+      depart: { wk: -30, day: 1 }, return: { wk: -30, day: 6 } }
+  - { after: denver-2, before: denver-3, trip_home: true,
+      depart: { wk: -16, day: 1 }, return: { wk: -16, day: 6 } }
 # One extra weekend trip home during denver-3, so there are three itineraries.
+# It is not in a gap, so R3 ignores it.
 extra_trips:
   - { depart: { wk: -6, day: 4 }, return: { wk: -5, day: 0 } }
 
@@ -181,6 +188,7 @@ emails:
   - template: flight_itinerary
     from: airline
     for_each: trips                               # two gap trips + one extra
+    send: on_depart                               # a check-in confirmation, so the email date is inside the break too
     record: trip_home
     facts: { home_airport: MCI, away_airport: DEN }
 
