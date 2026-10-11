@@ -1,0 +1,13 @@
+# Applies to the api image (repo-root build context). The web image builds from ./frontend.
+.git
+.env
+.env.*
+frontend
+scripts
+*.md
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.venv
+**/node_modules
+*.db
