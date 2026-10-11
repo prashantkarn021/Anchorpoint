@@ -1,0 +1,15 @@
+# Static SPA server for the `web` container. The front Caddy (repo root) handles HTTPS and /api.
+:80 {
+	root * /usr/share/caddy
+	encode gzip
+
+	# Hashed build assets can be cached forever; index.html must always revalidate.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	@pages not path /assets/*
+	header @pages Cache-Control "no-cache"
+
+	# Client-side routes (/records, /risk-check, ...) fall back to index.html
+	try_files {path} /index.html
+	file_server
+}
