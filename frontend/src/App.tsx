@@ -5,7 +5,6 @@ import { buttonClass, EmptyState } from "./components/ui";
 import { ActivityPage } from "./pages/ActivityPage";
 import { Connections } from "./pages/Connections";
 import { Overview } from "./pages/Overview";
-import { Packet } from "./pages/Packet";
 import { Privacy } from "./pages/Privacy";
 import { Records } from "./pages/Records";
 import { RiskCheck } from "./pages/RiskCheck";
@@ -35,7 +34,6 @@ const router = createBrowserRouter([
       { path: "activity", element: <ActivityPage /> },
       { path: "risk-check", element: <RiskCheck /> },
       { path: "timeline", element: <Timeline /> },
-      { path: "packet", element: <Packet /> },
       { path: "connections", element: <Connections /> },
       { path: "privacy", element: <Privacy /> },
       { path: "*", element: <NotFound /> },

@@ -21,7 +21,11 @@ services:
     restart: unless-stopped
 
   web:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # auto = fall back to demo fixtures for missing endpoints; live = never (use for the demo)
+        VITE_API_MODE: ${VITE_API_MODE:-auto}
     restart: unless-stopped
 
   caddy:
