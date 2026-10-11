@@ -166,9 +166,13 @@ export interface StartConnectionResponse {
   link_token?: string | null;
 }
 
-/** PATCH /records/{id}. Either a status change or an edit of extracted fields. */
+/** PATCH /records/{id}: a status change, an edit of extracted fields, or both. */
 export interface RecordPatch {
   user_status?: UserStatus;
+  edits?: RecordEdits;
+}
+
+export interface RecordEdits {
   amount?: number | null;
   payee?: string | null;
   address?: string | null;

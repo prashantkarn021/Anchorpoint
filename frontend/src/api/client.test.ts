@@ -86,6 +86,14 @@ describe("api client (auto mode)", () => {
     expect((call[1].headers as Record<string, string>)["Content-Type"]).toBe("application/json");
   });
 
+  it("sends field edits nested under edits, as the records API requires", async () => {
+    const f = respond(200, {});
+    vi.stubGlobal("fetch", f);
+    await api.patchRecord("rec_1", { edits: { payee: "Westport Property Mgmt", amount: 1150 } });
+    const body = JSON.parse((f.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body).toEqual({ edits: { payee: "Westport Property Mgmt", amount: 1150 } });
+  });
+
   it("uploads multipart without forcing a JSON content type", async () => {
     const f = respond(200, []);
     vi.stubGlobal("fetch", f);

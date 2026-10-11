@@ -20,7 +20,14 @@ import {
 import { useCallback, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { usePatchRecord, useRecord } from "../api/hooks";
-import type { Actor, Factor, LedgerRecord, RecordPatch, RecordType } from "../api/types";
+import type {
+  Actor,
+  Factor,
+  LedgerRecord,
+  RecordEdits,
+  RecordPatch,
+  RecordType,
+} from "../api/types";
 import {
   ACTOR_LABEL,
   FACTOR_LONG,
@@ -391,19 +398,19 @@ function EditForm({
       setError("Enter a valid date.");
       return;
     }
-    const p: RecordPatch = {};
-    if (type !== r.type) p.type = type;
-    if (date !== r.date) p.date = date;
-    if (amt !== r.amount) p.amount = amt;
-    if ((payee.trim() || null) !== r.payee) p.payee = payee.trim() || null;
-    if ((address.trim() || null) !== r.address) p.address = address.trim() || null;
+    const edits: RecordEdits = {};
+    if (type !== r.type) edits.type = type;
+    if (date !== r.date) edits.date = date;
+    if (amt !== r.amount) edits.amount = amt;
+    if ((payee.trim() || null) !== r.payee) edits.payee = payee.trim() || null;
+    if ((address.trim() || null) !== r.address) edits.address = address.trim() || null;
     const f = factor ? (Number(factor) as Factor) : null;
-    if (f !== r.factor) p.factor = f;
-    if (Object.keys(p).length === 0) {
+    if (f !== r.factor) edits.factor = f;
+    if (Object.keys(edits).length === 0) {
       onCancel();
       return;
     }
-    onSave(p);
+    onSave({ edits });
   };
 
   const input =

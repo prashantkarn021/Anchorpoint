@@ -128,7 +128,7 @@ export class FixtureStore {
   patchRecord(id: string, patch: RecordPatch): LedgerRecord {
     const r = this.data.records.find((x) => x.id === id);
     if (!r) throw new NotFound(`Record ${id} not found`);
-    const { user_status, ...fields } = patch;
+    const { user_status, edits: fields = {} } = patch;
     const changed = Object.keys(fields).filter(
       (k) =>
         (fields as Record<string, unknown>)[k] !== (r as unknown as Record<string, unknown>)[k],
