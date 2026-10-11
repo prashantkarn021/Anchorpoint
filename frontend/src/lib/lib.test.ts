@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { Assignment } from "../api/types";
+import type { Assignment, LedgerRecord } from "../api/types";
 import { validateFiles } from "../components/UploadDialog";
 import { buildPersona } from "../fixtures/personas";
+import { agentTasks, taskFor } from "./agentTasks";
 import { money, monthLabel, relativeTime, splitRecordIds } from "./format";
 import { clockLevel, metroStretches } from "./timeline";
 
@@ -127,5 +128,83 @@ describe("fixtures pin the demo story", () => {
     expect(d.assessment.status).toBe("needs_attention");
     expect(d.riskReport.verdict).toBe("high_risk");
     expect(d.records.some((r) => r.needs_review)).toBe(true);
+  });
+});
+
+describe("agentTasks", () => {
+  const maya = buildPersona("maya");
+  const home = maya.profile.home_address;
+  const base = maya.records[0];
+  const rec = (over: Partial<LedgerRecord>): LedgerRecord => ({
+    ...base,
+    type: "utility_bill",
+    address: home,
+    confidence: 0.95,
+    needs_review: false,
+    user_status: "pending",
+    ...over,
+  });
+
+  it("asks only about pending records", () => {
+    const tasks = agentTasks(
+      [
+        rec({ id: "a" }),
+        rec({ id: "b", user_status: "confirmed" }),
+        rec({ id: "c", user_status: "rejected" }),
+      ],
+      home,
+    );
+    expect(tasks.map((t) => t.id)).toEqual(["a"]);
+  });
+  it("picks the question that matters most for each record", () => {
+    expect(taskFor(rec({ address: "9 Other St, Denver, CO" }), home).kind).toBe("address");
+    expect(taskFor(rec({ address: home.toUpperCase().replace(/,/g, "") }), home).kind).not.toBe(
+      "address",
+    );
+    expect(taskFor(rec({ confidence: 0.52 }), home).kind).toBe("unsure");
+    expect(taskFor(rec({ type: "drivers_license" }), home).kind).toBe("sensitive");
+    expect(taskFor(rec({ type: "rent_payment" }), home).kind).toBe("file");
+  });
+  it("never asks about the address on travel costs", () => {
+    const lodging = rec({ type: "lodging_receipt", address: "2210 Clarkson St, Denver, CO" });
+    expect(taskFor(lodging, home).kind).toBe("file");
+  });
+  it("puts likely mistakes first", () => {
+    const tasks = agentTasks(
+      [
+        rec({ id: "file", type: "rent_payment" }),
+        rec({ id: "sens", type: "insurance" }),
+        rec({ id: "unsure", confidence: 0.4 }),
+        rec({ id: "addr", address: "1 Elsewhere Rd" }),
+      ],
+      home,
+    );
+    expect(tasks.map((t) => t.id)).toEqual(["addr", "unsure", "sens", "file"]);
+  });
+  it("batches routine records from one sender, never address or reading checks", () => {
+    const stub = (id: string, date: string) =>
+      rec({ id, type: "paystub", payee: "Northbridge", date, address: null });
+    const tasks = agentTasks(
+      [
+        stub("p1", "2026-09-04"),
+        stub("p2", "2026-09-11"),
+        stub("p3", "2026-09-18"),
+        rec({ id: "a1", address: "1 Elsewhere Rd" }),
+        rec({ id: "a2", address: "2 Elsewhere Rd" }),
+      ],
+      home,
+    );
+    expect(tasks.map((t) => t.records.length)).toEqual([1, 1, 3]);
+    const batched = tasks[2];
+    expect(batched.question).toBe("Keep these 3 pay stubs from Northbridge as evidence?");
+    expect(batched.record.id).toBe("p3");
+  });
+  it("covers every pending maya fixture exactly once", () => {
+    const tasks = agentTasks(maya.records, home);
+    const covered = tasks.flatMap((t) => t.records.map((r) => r.id)).sort();
+    const pending = maya.records.filter((r) => r.user_status === "pending").map((r) => r.id);
+    expect(covered).toEqual(pending.sort());
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const t of tasks) expect(t.question.endsWith("?")).toBe(true);
   });
 });

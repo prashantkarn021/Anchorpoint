@@ -33,7 +33,7 @@ function ClockCard({ s }: { s: MetroStretch }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs text-ink-3">One-year clock</p>
-          <h3 className="text-[15px] font-semibold text-ink">
+          <h3 className="text-[0.9375rem] font-semibold text-ink">
             {s.metro}, {s.state}
           </h3>
         </div>
@@ -49,19 +49,19 @@ function ClockCard({ s }: { s: MetroStretch }) {
           <Badge tone="good">Under 9 months</Badge>
         )}
       </div>
-      <p className="mt-3 text-[28px] leading-none font-semibold tracking-tight text-ink">
+      <p className="mt-3 text-[1.75rem] leading-none font-semibold tracking-tight text-ink">
         {now.toFixed(1)}
         <span className="ml-1 text-sm font-medium text-ink-3">months</span>
       </p>
       {hasOffer ? (
-        <p className="mt-1 text-[13px] text-ink-2">
+        <p className="mt-1 text-[0.8125rem] text-ink-2">
           <span className={clsx("font-semibold", proj > 12 ? "text-high" : "text-warn")}>
             {proj.toFixed(1)} months
           </span>{" "}
           if you accept the offer
         </p>
       ) : (
-        <p className="mt-1 text-[13px] text-ink-3">
+        <p className="mt-1 text-[0.8125rem] text-ink-3">
           continuous since {shortDate(s.start.toISOString())}
         </p>
       )}
@@ -84,7 +84,7 @@ function ClockCard({ s }: { s: MetroStretch }) {
           />
         ))}
       </div>
-      <div className="relative mt-1.5 h-4 text-[11px] text-ink-3" aria-hidden>
+      <div className="relative mt-1.5 h-4 text-[0.6875rem] text-ink-3" aria-hidden>
         <span className="absolute -translate-x-1/2" style={{ left: pctOf(9) }}>
           9 mo
         </span>
@@ -130,8 +130,8 @@ function Gantt({
 
   return (
     <div className="overflow-x-auto">
-      <div className="min-w-[680px] px-5 pb-4">
-        <div className="relative ml-[180px] h-6 border-b border-line text-[11px] text-ink-3">
+      <div className="min-w-[42.5rem] px-5 pb-4">
+        <div className="relative ml-[11.25rem] h-6 border-b border-line text-[0.6875rem] text-ink-3">
           {monthTicks.map((d, i) => (
             <span key={i} className="absolute top-1 -translate-x-1/2" style={{ left: x(d) }}>
               {i % 2 === 0
@@ -144,13 +144,13 @@ function Gantt({
           ))}
         </div>
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 right-0 left-[180px]">
+          <div className="pointer-events-none absolute inset-y-0 right-0 left-[11.25rem]">
             <div
               className="absolute inset-y-0 w-px bg-brand-700/70"
               style={{ left: x(today) }}
               aria-hidden
             >
-              <span className="absolute -top-0.5 left-1 rounded bg-brand-800 px-1 text-[10px] font-medium text-white">
+              <span className="absolute -top-0.5 left-1 rounded bg-brand-800 px-1 text-[0.625rem] font-medium text-white">
                 Today
               </span>
             </div>
@@ -161,8 +161,8 @@ function Gantt({
             const label = `${a.facility}, ${a.metro.name} ${a.metro.state}: ${shortDate(a.start)} to ${shortDate(a.end)} (${a.status})`;
             return (
               <div key={a.id} className="flex h-12 items-center border-b border-line/70">
-                <div className="w-[180px] shrink-0 pr-3">
-                  <p className="truncate text-[13px] font-medium text-ink">
+                <div className="w-[11.25rem] shrink-0 pr-3">
+                  <p className="truncate text-[0.8125rem] font-medium text-ink">
                     {a.metro.name}, {a.metro.state}
                   </p>
                   <p className="truncate text-xs text-ink-3">{a.facility}</p>
@@ -175,7 +175,7 @@ function Gantt({
                     onClick={() => a.source_record_ids[0] && openRecord(a.source_record_ids[0])}
                     disabled={!a.source_record_ids.length}
                     className={clsx(
-                      "absolute top-1/2 flex h-6 -translate-y-1/2 items-center overflow-hidden rounded-[4px] px-2 text-[11px] font-medium whitespace-nowrap",
+                      "absolute top-1/2 flex h-6 -translate-y-1/2 items-center overflow-hidden rounded-[4px] px-2 text-[0.6875rem] font-medium whitespace-nowrap",
                       a.status === "active" && "text-white",
                       a.status === "completed" && "bg-[#9ec5f4] text-ink",
                       a.status === "offered" &&
@@ -194,8 +194,8 @@ function Gantt({
             );
           })}
           <div className="flex h-12 items-center">
-            <div className="w-[180px] shrink-0 pr-3">
-              <p className="flex items-center gap-1.5 text-[13px] font-medium text-ink">
+            <div className="w-[11.25rem] shrink-0 pr-3">
+              <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-ink">
                 <Plane className="size-3.5 text-ink-3" aria-hidden /> Trips home
               </p>
               <p className="text-xs text-ink-3">{trips.length} found</p>
@@ -274,7 +274,7 @@ export function Timeline() {
         </Card>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {stretches
               .slice()
               .sort((a, b) => b.projectedMonths - a.projectedMonths)
@@ -306,7 +306,7 @@ export function Timeline() {
           <Card>
             <CardHeader title="All assignments" />
             <div className="overflow-x-auto border-t border-line">
-              <table className="w-full min-w-[640px] text-[13px]">
+              <table className="w-full min-w-[40rem] text-[0.8125rem]">
                 <thead>
                   <tr className="border-b border-line bg-canvas/60 text-left text-xs text-ink-3">
                     <th scope="col" className="py-2 pl-5 font-medium">

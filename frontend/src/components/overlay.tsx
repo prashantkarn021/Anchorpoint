@@ -59,7 +59,7 @@ export function Sheet({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 m-0 ml-auto h-dvh max-h-none w-full max-w-[560px] bg-transparent p-0 backdrop:bg-ink/25 backdrop:backdrop-blur-[1px] open:animate-slide-in"
+      className="fixed inset-0 m-0 ml-auto h-dvh max-h-none w-full max-w-[35rem] bg-transparent p-0 backdrop:bg-ink/25 backdrop:backdrop-blur-[1px] open:animate-slide-in"
     >
       <div className="flex h-full flex-col border-l border-line bg-surface shadow-pop">
         {open ? children : null}
@@ -103,7 +103,9 @@ export function Modal({
           <div className="flex items-start justify-between gap-4 border-b border-line px-6 pt-5 pb-4">
             <div>
               <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-              {description ? <p className="mt-1 text-[13px] text-ink-3">{description}</p> : null}
+              {description ? (
+                <p className="mt-1 text-[0.8125rem] text-ink-3">{description}</p>
+              ) : null}
             </div>
             <button
               type="button"
@@ -173,7 +175,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         ref={region}
         popover="manual"
-        className="pointer-events-none fixed z-50 flex w-[min(380px,calc(100%-2rem))] flex-col gap-2 overflow-visible border-0 bg-transparent p-0"
+        className="pointer-events-none fixed z-50 flex w-[min(23.75rem,calc(100%-2rem))] flex-col gap-2 overflow-visible border-0 bg-transparent p-0"
         style={{ inset: "auto 1rem 1rem auto", margin: 0 }}
         aria-live="polite"
         role="status"
@@ -198,7 +200,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-ink">{t.title}</p>
-                {t.body ? <p className="mt-0.5 text-[13px] text-ink-3">{t.body}</p> : null}
+                {t.body ? <p className="mt-0.5 text-[0.8125rem] text-ink-3">{t.body}</p> : null}
               </div>
               <button
                 type="button"

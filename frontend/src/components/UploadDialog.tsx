@@ -189,7 +189,7 @@ export function UploadDialog({ open, onClose }: { open: boolean; onClose: () => 
             />
           </div>
           {errors.length ? (
-            <ul role="alert" className="mt-3 space-y-1 text-[13px] text-high">
+            <ul role="alert" className="mt-3 space-y-1 text-[0.8125rem] text-high">
               {errors.map((e) => (
                 <li key={e}>{e}</li>
               ))}

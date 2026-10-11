@@ -43,7 +43,7 @@ interface ProviderInfo {
   note?: string;
 }
 
-const INFO: Record<Connectable, ProviderInfo> = {
+export const INFO: Record<Connectable, ProviderInfo> = {
   gmail: {
     name: "Gmail",
     tagline: "Bills, rent receipts, leases, itineraries and pay stubs",
@@ -92,7 +92,7 @@ const INFO: Record<Connectable, ProviderInfo> = {
   },
 };
 
-const ORDER: Connectable[] = ["gmail", "calendar", "bank"];
+export const ORDER: Connectable[] = ["gmail", "calendar", "bank"];
 
 function statusBadge(c: Connection | undefined) {
   if (!c || c.status === "revoked") return <Badge>Not connected</Badge>;
@@ -174,7 +174,7 @@ function ConsentModal({
             <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-sunken">
               <Icon className="size-5 text-brand-700" aria-hidden />
             </span>
-            <p className="text-[14px] leading-relaxed text-ink-2">{info.benefit}</p>
+            <p className="text-[0.875rem] leading-relaxed text-ink-2">{info.benefit}</p>
           </div>
 
           <section>
@@ -183,7 +183,7 @@ function ConsentModal({
             </h3>
             <ul className="space-y-1.5">
               {info.reads.map((r) => (
-                <li key={r} className="flex gap-2 text-[13.5px] text-ink">
+                <li key={r} className="flex gap-2 text-[0.8438rem] text-ink">
                   <Check className="mt-0.5 size-4 shrink-0 text-good" aria-hidden /> {r}
                 </li>
               ))}
@@ -196,7 +196,7 @@ function ConsentModal({
             </h3>
             <ul className="space-y-1.5">
               {info.never.map((r) => (
-                <li key={r} className="flex gap-2 text-[13.5px] text-ink">
+                <li key={r} className="flex gap-2 text-[0.8438rem] text-ink">
                   <X className="mt-0.5 size-4 shrink-0 text-ink-3" aria-hidden /> {r}
                 </li>
               ))}
@@ -204,7 +204,7 @@ function ConsentModal({
           </section>
 
           <section className="rounded-xl border border-line bg-canvas/60 p-4">
-            <ul className="space-y-2.5 text-[13px] text-ink-2">
+            <ul className="space-y-2.5 text-[0.8125rem] text-ink-2">
               <li className="flex gap-2">
                 <EyeOff className="mt-0.5 size-4 shrink-0 text-ink-3" aria-hidden />
                 <span>
@@ -229,7 +229,7 @@ function ConsentModal({
             </ul>
           </section>
 
-          <details className="group text-[13px]">
+          <details className="group text-[0.8125rem]">
             <summary className="cursor-pointer list-none font-medium text-brand-700 hover:underline">
               <span className="inline-flex items-center gap-1.5">
                 <KeyRound className="size-3.5" aria-hidden /> Exact permissions requested
@@ -314,7 +314,7 @@ function RevokeModal({ conn, onClose }: { conn: Connection | null; onClose: () =
             <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
               <Trash2 className="size-4 text-high" aria-hidden /> Also delete my data from {name}
             </span>
-            <span className="mt-0.5 block text-[13px] text-ink-3">
+            <span className="mt-0.5 block text-[0.8125rem] text-ink-3">
               Removes the {conn.records_created} record{conn.records_created === 1 ? "" : "s"} it
               created. Your score will update.
             </span>
@@ -347,35 +347,35 @@ function ProviderCard({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-[15px] font-semibold text-ink">{info.name}</h2>
+            <h2 className="text-[0.9375rem] font-semibold text-ink">{info.name}</h2>
             {statusBadge(conn)}
           </div>
-          <p className="mt-0.5 text-[13px] text-ink-3">{info.tagline}</p>
+          <p className="mt-0.5 text-[0.8125rem] text-ink-3">{info.tagline}</p>
         </div>
       </div>
       {active ? (
         <dl className="grid grid-cols-3 border-y border-line bg-canvas/60 text-center">
           <div className="px-3 py-3">
-            <dt className="text-[11px] text-ink-3">Items seen</dt>
+            <dt className="text-[0.6875rem] text-ink-3">Items seen</dt>
             <dd className="tnum mt-0.5 text-sm font-semibold text-ink">
               {conn.items_seen.toLocaleString()}
             </dd>
           </div>
           <div className="border-x border-line px-3 py-3">
-            <dt className="text-[11px] text-ink-3">Records filed</dt>
+            <dt className="text-[0.6875rem] text-ink-3">Records filed</dt>
             <dd className="tnum mt-0.5 text-sm font-semibold text-ink">
               {conn.records_created.toLocaleString()}
             </dd>
           </div>
           <div className="px-3 py-3">
-            <dt className="text-[11px] text-ink-3">Last sync</dt>
+            <dt className="text-[0.6875rem] text-ink-3">Last sync</dt>
             <dd className="mt-0.5 text-sm font-semibold text-ink">
               {relativeTime(conn.last_sync)}
             </dd>
           </div>
         </dl>
       ) : (
-        <div className="border-y border-line bg-canvas/60 px-5 py-3 text-[13px] text-ink-2">
+        <div className="border-y border-line bg-canvas/60 px-5 py-3 text-[0.8125rem] text-ink-2">
           {info.benefit}
         </div>
       )}
@@ -441,7 +441,7 @@ export function Connections() {
           <ErrorState error={q.error} onRetry={() => void q.refetch()} />
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {q.isPending
             ? ORDER.map((p) => (
                 <Card key={p} className="space-y-3 p-5">
@@ -470,10 +470,10 @@ export function Connections() {
           <Upload className="size-5 text-brand-700" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[15px] font-semibold text-ink">
+          <h2 className="text-[0.9375rem] font-semibold text-ink">
             Paper receipts, PDFs and screenshots
           </h2>
-          <p className="mt-0.5 text-[13px] text-ink-3">
+          <p className="mt-0.5 text-[0.8125rem] text-ink-3">
             Snap gas, motel and hardware receipts, or screenshot a landlord or recruiter text. No
             account needed.
           </p>

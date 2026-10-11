@@ -87,7 +87,7 @@ function Hero() {
     return (
       <Card className="p-6">
         <div className="flex items-center gap-6">
-          <Skeleton className="size-[148px] rounded-full" />
+          <Skeleton className="size-[9.25rem] rounded-full" />
           <div className="flex-1 space-y-3">
             <Skeleton className="h-6 w-1/2" />
             <Skeleton className="h-4 w-3/4" />
@@ -133,7 +133,7 @@ function Hero() {
               {ASSESSMENT_LABEL[data.status].toLowerCase()}
             </span>
           </h1>
-          <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-ink-2">
+          <p className="mt-2 max-w-xl text-[0.875rem] leading-relaxed text-ink-2">
             {data.factors_met} of 3 IRS tax-home factors are supported by your evidence.{" "}
             {highs + warns > 0
               ? `${highs ? `${highs} high-risk and ` : ""}${warns} warning${warns === 1 ? "" : "s"} to look at below.`
@@ -170,7 +170,10 @@ function ActivityPanel() {
         title="Agent activity"
         subtitle="What the agent found, skipped and filed"
         action={
-          <Link to="/activity" className="text-[13px] font-medium text-brand-700 hover:underline">
+          <Link
+            to="/activity"
+            className="text-[0.8125rem] font-medium text-brand-700 hover:underline"
+          >
             View all
           </Link>
         }
@@ -207,7 +210,7 @@ export function Overview() {
     <div className="space-y-6">
       <Hero />
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_23.75rem]">
         <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader
