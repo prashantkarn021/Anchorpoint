@@ -3,3 +3,4 @@ uvicorn[standard]>=0.30,<1
 pytest>=8,<9
 sse-starlette>=2,<3
 cryptography>=43
+httpx2>=2,<3
