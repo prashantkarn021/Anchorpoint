@@ -354,3 +354,61 @@ def test_fetch_since_over_the_cap_takes_the_oldest_and_stops_the_cursor_there(mo
 
     assert [item.source_id for item in items] == ["m1", "m2"]
     assert cursor == "1760000002"
+
+
+QUOTA = (
+    "Google returned HTTP 403: Quota exceeded for quota metric 'Total Query Cost' and limit "
+    "'Units per minute per user' of service 'gmail.googleapis.com'"
+)
+
+
+class FlakyGoogle(FakeGoogle):
+    """Refuses the first `refusals` message fetches the way Gmail does when over quota."""
+
+    def __init__(self, messages, refusals, status=403, text=QUOTA):
+        super().__init__(messages)
+        self.refusals, self.status, self.text = refusals, status, text
+
+    def __call__(self, method, url, params, form, token):
+        if url.startswith(f"{API}/messages/") and self.refusals > 0:
+            self.refusals -= 1
+            raise GoogleAuthError(self.text, status=self.status)
+        return super().__call__(method, url, params, form, token)
+
+
+def test_fetch_since_waits_out_the_gmail_quota_instead_of_failing(monkeypatch):
+    slept = []
+    monkeypatch.setattr(gmail, "RATE_LIMIT_WAITS", (2, 5))
+    monkeypatch.setattr(gmail.time, "sleep", slept.append)
+    google = FlakyGoogle([message("m1", 1_760_000_100, "Rent", "Synthetic rent receipt")], refusals=2)
+    connector, _ = connected(google)
+
+    items, _ = connector.fetch_since(None)
+
+    assert [item.source_id for item in items] == ["m1"]
+    assert slept == [2, 5]
+
+
+def test_fetch_since_gives_up_when_the_quota_stays_exhausted(monkeypatch):
+    monkeypatch.setattr(gmail, "RATE_LIMIT_WAITS", (1,))
+    monkeypatch.setattr(gmail.time, "sleep", lambda seconds: None)
+    google = FlakyGoogle([message("m1", 1_760_000_100, "Rent", "Synthetic rent receipt")], refusals=5)
+    connector, _ = connected(google)
+
+    with pytest.raises(GoogleAuthError, match="Quota exceeded"):
+        connector.fetch_since(None)
+
+
+def test_a_permission_error_is_not_retried(monkeypatch):
+    slept = []
+    monkeypatch.setattr(gmail, "RATE_LIMIT_WAITS", (2, 5))
+    monkeypatch.setattr(gmail.time, "sleep", slept.append)
+    google = FlakyGoogle(
+        [message("m1", 1_760_000_100, "Rent", "Synthetic rent receipt")],
+        refusals=5, text="Google returned HTTP 403: Insufficient Permission",
+    )
+    connector, _ = connected(google)
+
+    with pytest.raises(GoogleAuthError, match="Insufficient Permission"):
+        connector.fetch_since(None)
+    assert slept == []

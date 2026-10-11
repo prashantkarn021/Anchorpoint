@@ -96,6 +96,10 @@ def run_sync() -> list[SyncResult]:
         raise TimeoutError("a sync is still running")
     try:
         results = []
+        # Bank first: it needs no model and no Gmail, so a Gmail hiccup cannot hold it up.
+        bank = bank_session.current()
+        if bank is not None:
+            results.append(sync_bank(bank, _ledger(), _state(), _profile()))
         gmail = GmailConnector(default_vault())
         if gmail.oauth.is_connected():
             results.append(sync_gmail(gmail, _ledger(), _state(), _profile()))
@@ -103,13 +107,10 @@ def run_sync() -> list[SyncResult]:
         if calendar.oauth.is_connected():
             try:
                 results.append(sync_calendar(calendar, _ledger(), _state(), _profile()))
-            except GoogleAuthError as exc:  # a calendar problem must not stop the bank sync
+            except GoogleAuthError as exc:  # a calendar problem must not fail the whole sync
                 log.warning("calendar sync failed: %s", exc)
                 if exc.status == 410:  # updatedMin too long ago: start a fresh backfill
                     _state().set_cursor("calendar", None)
-        bank = bank_session.current()
-        if bank is not None:
-            results.append(sync_bank(bank, _ledger(), _state(), _profile()))
         return results
     finally:
         _running.release()
