@@ -4,6 +4,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.routers.oauth import router as oauth_router
+from backend.app.routers.records import router as records_router
 from backend.app.routers.stubs import router as stubs_router
 
 VERSION = os.getenv("APP_VERSION", "0.1.0")
@@ -28,4 +29,5 @@ def health() -> dict:
 
 app.include_router(api)
 app.include_router(oauth_router)
+app.include_router(records_router)
 app.include_router(stubs_router)
