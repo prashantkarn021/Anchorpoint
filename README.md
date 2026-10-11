@@ -27,7 +27,7 @@ Three containers, one `docker-compose.yml`:
 | ------- | ------------------------------------------------------ | ------------------------- |
 | `caddy` | Front door. HTTPS on the Linode, plain HTTP locally    | ports 80 / 443            |
 | `api`   | FastAPI backend, SQLite on the `api-data` volume       | `/api/*`                  |
-| `web`   | Frontend (a placeholder page until the Vite app lands) | everything else           |
+| `web`   | Vite app built and served by Caddy (`frontend/`)       | everything else           |
 
 All API routes live under `/api`. Caddy does not strip the prefix, so routers mount at `/api/...`.
 
@@ -39,7 +39,7 @@ contract/            openapi.json, fixtures/, CHANGELOG.md
 backend/app/
   main.py            app + /api/health
   routers/  connectors/  sync/  vault/  ledger/  rules/  agents/  packet/
-frontend/            Vite + React + TS + Tailwind (placeholder for now)
+frontend/            Vite + React + TS + Tailwind (see frontend/README.md)
 scripts/             personas/, seed_*.py, smoke.sh, deploy.sh
 ```
 

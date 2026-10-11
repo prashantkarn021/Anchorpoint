@@ -270,9 +270,10 @@ export function Layout() {
       >
         Skip to content
       </a>
-      <Disclaimer />
       <div className="flex">
-        <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 border-r border-line bg-canvas lg:block">
+        {/* Starts at the very top (banner lives in the content column) so the demo controls at
+            the bottom stay on screen; scrolls on short displays like a 768px projector. */}
+        <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 overflow-y-auto border-r border-line bg-canvas lg:block">
           <Sidebar />
         </aside>
 
@@ -289,13 +290,14 @@ export function Layout() {
               aria-label="Close menu"
               onClick={() => setMenuOpen(false)}
             />
-            <div className="absolute inset-y-0 left-0 w-72 animate-fade-in border-r border-line bg-canvas shadow-pop">
+            <div className="absolute inset-y-0 left-0 w-72 animate-fade-in overflow-y-auto border-r border-line bg-canvas shadow-pop">
               <Sidebar onNavigate={() => setMenuOpen(false)} />
             </div>
           </div>
         ) : null}
 
         <div className="min-w-0 flex-1">
+          <Disclaimer />
           <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-canvas/85 px-4 backdrop-blur sm:px-6 lg:px-8">
             <button
               type="button"

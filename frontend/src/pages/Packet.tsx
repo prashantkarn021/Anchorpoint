@@ -61,7 +61,7 @@ export function Packet() {
         description="One file for your tax professional: your assessment, every finding, and an evidence index where each record links back to its source."
       />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card>
           <CardHeader
             title="What's inside"

@@ -441,7 +441,7 @@ export function Connections() {
           <ErrorState error={q.error} onRetry={() => void q.refetch()} />
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {q.isPending
             ? ORDER.map((p) => (
                 <Card key={p} className="space-y-3 p-5">
