@@ -31,6 +31,7 @@ import {
 } from "../api/hooks";
 import type { PersonaId } from "../api/types";
 import { PERSONAS } from "../fixtures/personas";
+import { AgentTasks } from "./AgentTasks";
 import { errorMessage, useToast } from "./overlay";
 import { RecordDrawer } from "./RecordDrawer";
 
@@ -103,12 +104,12 @@ function PersonaSwitcher() {
     PERSONAS.find((p) => rawId === p.id || rawId.startsWith(`${p.id}-`))?.id ?? "maya";
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold tracking-wide text-ink-4 uppercase">
+      <span className="mb-1 block text-[0.6875rem] font-semibold tracking-wide text-ink-4 uppercase">
         Persona
       </span>
       <span className="relative block">
         <select
-          className="h-9 w-full appearance-none rounded-lg border border-line bg-surface pr-8 pl-3 text-[13px] font-medium text-ink hover:border-line-strong focus:border-brand-400 focus:outline-none"
+          className="h-9 w-full appearance-none rounded-lg border border-line bg-surface pr-8 pl-3 text-[0.8125rem] font-medium text-ink hover:border-line-strong focus:border-brand-400 focus:outline-none"
           value={current}
           disabled={reset.isPending}
           onChange={(e) => {
@@ -145,10 +146,10 @@ function DemoControls() {
   const inject = useDemoInject();
   const toast = useToast();
   const btn =
-    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[13px] text-ink-2 hover:bg-sunken hover:text-ink disabled:opacity-50";
+    "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[0.8125rem] text-ink-2 hover:bg-sunken hover:text-ink disabled:opacity-50";
   return (
     <div>
-      <p className="mb-1 text-[11px] font-semibold tracking-wide text-ink-4 uppercase">Demo</p>
+      <p className="mb-1 text-[0.6875rem] font-semibold tracking-wide text-ink-4 uppercase">Demo</p>
       <button
         type="button"
         className={btn}
@@ -195,8 +196,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <Anchor className="size-4.5" aria-hidden />
         </span>
         <div>
-          <p className="text-[15px] font-semibold tracking-tight text-ink">Anchorpoint</p>
-          <p className="text-[11px] text-ink-4">Tax-home evidence</p>
+          <p className="text-[0.9375rem] font-semibold tracking-tight text-ink">Anchorpoint</p>
+          <p className="text-[0.6875rem] text-ink-4">Tax-home evidence</p>
         </div>
       </div>
       <nav aria-label="Main" className="flex-1 space-y-0.5 px-3">
@@ -224,7 +225,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <span className="flex-1">{label}</span>
                 {to === "/records" && needsReview > 0 ? (
                   <span
-                    className="tnum rounded-full bg-warn-bg px-1.5 text-[11px] font-semibold text-warn"
+                    className="tnum rounded-full bg-warn-bg px-1.5 text-[0.6875rem] font-semibold text-warn"
                     title={`${needsReview} need review`}
                   >
                     {needsReview}
@@ -248,13 +249,16 @@ export function Disclaimer() {
     <div className="border-b border-line bg-surface px-4 py-1.5 text-center text-xs text-ink-3">
       <span className="font-medium text-ink-2">Not tax advice.</span> Anchorpoint organizes your
       evidence and flags risks to review with a CPA. All people and accounts in this demo are
-      synthetic.
+      synthetic.{" "}
+      <NavLink to="/privacy" className="font-medium text-brand-700 hover:underline">
+        Privacy
+      </NavLink>
     </div>
   );
 }
 
 export function Layout() {
-  const { state } = useActivityStream();
+  const { state, lastEvent } = useActivityStream();
   const sync = useSync();
   const toast = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -313,6 +317,7 @@ export function Layout() {
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               <FixturePill />
               <StreamIndicator state={state} />
+              <AgentTasks lastEvent={lastEvent} />
               <button
                 type="button"
                 onClick={() =>
@@ -323,7 +328,7 @@ export function Layout() {
                   })
                 }
                 disabled={sync.isPending}
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-2.5 text-[13px] font-medium text-ink shadow-card hover:bg-sunken disabled:opacity-60"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line-strong bg-surface px-2.5 text-[0.8125rem] font-medium text-ink shadow-card hover:bg-sunken disabled:opacity-60"
               >
                 <RefreshCw
                   className={clsx("size-3.5", sync.isPending && "animate-spin")}

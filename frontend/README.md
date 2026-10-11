@@ -21,7 +21,7 @@ In Docker, `frontend/Dockerfile` builds the app and serves `dist/` with Caddy (S
 
 | Mode             | Behavior                                                                                                                                                                                                                                                                                   |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `auto` (default) | Calls the live API. An endpoint that is not implemented yet (FastAPI `{"detail":"Not Found"}`, 405) or unreachable (network, 502-504) is served from `src/fixtures`. The header shows "Fixtures for N endpoints". Real errors (404 with another detail, 4xx, 500) are shown, never hidden. |
+| `auto` (default) | Calls the live API. An endpoint that is not implemented yet (FastAPI `{"detail":"Not Found"}`, 405) or unreachable (network, or a 502-504 from the proxy without a FastAPI `detail`) is served from `src/fixtures`. The header shows "Fixtures for N endpoints". Real errors (404 with another detail, 4xx, 500) are shown, never hidden. |
 | `live`           | Never falls back. Use for the final demo build: `docker compose build --build-arg VITE_API_MODE=live web`.                                                                                                                                                                                 |
 | `fixtures`       | Frontend only, no API calls.                                                                                                                                                                                                                                                               |
 
@@ -46,6 +46,7 @@ In Docker, `frontend/Dockerfile` builds the app and serves `dist/` with Caddy (S
 ```text
 src/api/         types.ts (contract), client.ts (fetch + fallback), hooks.ts (queries, SSE)
 src/fixtures/    synthetic personas (Maya, Sam, Luis) and an in-browser stand-in for the API
-src/components/  Layout, RecordDrawer (provenance), ActivityFeed, DuplicateExpenseChart, Findings, UploadDialog, ui
-src/pages/       Overview, Records, ActivityPage, RiskCheck, Timeline, Packet, Connections
+src/components/  Layout, AgentTasks (yes/no approvals), RecordDrawer (provenance), ActivityFeed, DuplicateExpenseChart, Findings, UploadDialog, ui
+src/pages/       Overview, Records, ActivityPage, RiskCheck, Timeline, Packet, Connections, Privacy
+src/lib/         format, timeline, agentTasks (pending records -> agent questions)
 ```

@@ -39,6 +39,16 @@ describe("api client (auto mode)", () => {
     await expect(api.connections()).resolves.toHaveLength(3);
   });
 
+  it("falls back on a proxy 502-504 but shows the API's own 503 detail", async () => {
+    vi.stubGlobal("fetch", respond(502, "Bad Gateway", "text/plain"));
+    await expect(api.connections()).resolves.toHaveLength(3);
+    vi.stubGlobal("fetch", respond(503, { detail: "TOKEN_ENC_KEY is not set" }));
+    await expect(api.startConnection("gmail")).rejects.toMatchObject({
+      status: 503,
+      message: "TOKEN_ENC_KEY is not set",
+    });
+  });
+
   it("falls back when the SPA index.html comes back instead of JSON", async () => {
     vi.stubGlobal("fetch", respond(200, "<!doctype html><html></html>", "text/html"));
     const recs = await api.records();

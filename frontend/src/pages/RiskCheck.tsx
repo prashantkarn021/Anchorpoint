@@ -50,7 +50,7 @@ const MAX_LEN = 20_000;
 function Narrative({ text, ids }: { text: string; ids: string[] }) {
   const parts = splitRecordIds(text, ids);
   return (
-    <p className="text-[14.5px] leading-relaxed text-ink">
+    <p className="text-[0.9063rem] leading-relaxed text-ink">
       {parts.map((p, i) =>
         typeof p === "string" ? <span key={i}>{p}</span> : <RecordChip key={i} id={p.id} />,
       )}
@@ -72,7 +72,7 @@ function Report({ r, knownIds }: { r: RiskReport; knownIds: string[] }) {
           <p className={clsx("text-xl font-semibold tracking-tight", s.text)}>
             {VERDICT_LABEL[r.verdict]}
           </p>
-          <p className="mt-0.5 text-[13.5px] text-ink-2">{s.sub}</p>
+          <p className="mt-0.5 text-[0.8438rem] text-ink-2">{s.sub}</p>
         </div>
         <span className="ml-auto hidden text-xs whitespace-nowrap text-ink-3 sm:block">
           {dateTime(r.generated_at)}
@@ -141,7 +141,7 @@ function Report({ r, knownIds }: { r: RiskReport; knownIds: string[] }) {
               </Button>
             }
           />
-          <ol className="list-decimal space-y-2 border-t border-line py-4 pr-5 pl-10 text-[14px] text-ink marker:text-ink-4">
+          <ol className="list-decimal space-y-2 border-t border-line py-4 pr-5 pl-10 text-[0.875rem] text-ink marker:text-ink-4">
             {r.questions_for_cpa.map((q) => (
               <li key={q}>{q}</li>
             ))}
@@ -204,11 +204,11 @@ export function RiskCheck() {
         description="Before you sign, see what a new offer does to your one-year clock and your stipends. Rules decide the verdict; the agent explains it."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,26.25rem)_minmax(0,1fr)]">
         <Card className="h-fit">
           <div className="border-b border-line p-1.5">
             <div
-              className="grid grid-cols-2 gap-1 rounded-lg bg-sunken p-0.5 text-[13px]"
+              className="grid grid-cols-2 gap-1 rounded-lg bg-sunken p-0.5 text-[0.8125rem]"
               role="tablist"
             >
               {(
@@ -244,7 +244,7 @@ export function RiskCheck() {
               <>
                 <label
                   htmlFor="offer"
-                  className="flex items-center justify-between text-[13px] font-medium text-ink-2"
+                  className="flex items-center justify-between text-[0.8125rem] font-medium text-ink-2"
                 >
                   Offer from your recruiter
                   <button
@@ -265,7 +265,7 @@ export function RiskCheck() {
                   maxLength={MAX_LEN}
                   rows={12}
                   placeholder="Paste the email or text: facility, city, start and end dates, hourly pay, lodging and meal stipends…"
-                  className="w-full resize-y rounded-lg border border-line-strong bg-surface px-3 py-2.5 font-mono text-[12.5px] leading-relaxed text-ink placeholder:font-sans placeholder:text-ink-4 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
+                  className="w-full resize-y rounded-lg border border-line-strong bg-surface px-3 py-2.5 font-mono text-[0.7813rem] leading-relaxed text-ink placeholder:font-sans placeholder:text-ink-4 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
                 />
                 <p className="text-xs text-ink-4">
                   The offer text is treated as untrusted input: instructions inside it are ignored.
@@ -274,7 +274,7 @@ export function RiskCheck() {
             ) : assignments.isPending ? (
               <Skeleton className="h-24 w-full" />
             ) : offered.length === 0 ? (
-              <p className="rounded-lg border border-line bg-canvas/60 px-4 py-6 text-center text-[13px] text-ink-3">
+              <p className="rounded-lg border border-line bg-canvas/60 px-4 py-6 text-center text-[0.8125rem] text-ink-3">
                 No offered assignments found yet. When an offer email arrives, it shows up here.
               </p>
             ) : (
@@ -300,7 +300,7 @@ export function RiskCheck() {
                         onChange={() => setAssignmentId(a.id)}
                         className="mt-1 accent-[var(--color-brand-700)]"
                       />
-                      <span className="text-[13px]">
+                      <span className="text-[0.8125rem]">
                         <span className="block font-medium text-ink">{a.facility}</span>
                         <span className="block text-ink-3">
                           {a.metro.name}, {a.metro.state} · {shortDate(a.start)} –{" "}
@@ -316,7 +316,7 @@ export function RiskCheck() {
               </fieldset>
             )}
             {error ? (
-              <p role="alert" className="text-[13px] text-high">
+              <p role="alert" className="text-[0.8125rem] text-high">
                 {error}
               </p>
             ) : null}
@@ -352,7 +352,7 @@ export function RiskCheck() {
                 <Gavel className="size-5 text-ink-3" aria-hidden />
               </span>
               <p className="mt-4 text-sm font-medium text-ink">Your result appears here</p>
-              <p className="mt-1 max-w-sm text-[13px] text-ink-3">
+              <p className="mt-1 max-w-sm text-[0.8125rem] text-ink-3">
                 We check the one-year clock in that city, the stipend against the federal rate,
                 distance from home and your current evidence.
               </p>

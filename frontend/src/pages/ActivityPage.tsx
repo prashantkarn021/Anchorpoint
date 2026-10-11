@@ -47,7 +47,7 @@ export function ActivityPage() {
       {blocked ? (
         <div className="flex items-start gap-3 rounded-xl border border-high/20 bg-high-bg/60 px-4 py-3.5">
           <ShieldAlert className="mt-0.5 size-5 shrink-0 text-high" aria-hidden />
-          <div className="text-[13.5px]">
+          <div className="text-[0.8438rem]">
             <p className="font-medium text-ink">
               {blocked} email{blocked === 1 ? "" : "s"} tried to give the agent instructions.
               Ignored and logged.
@@ -69,7 +69,7 @@ export function ActivityPage() {
               aria-pressed={filter === c.k}
               onClick={() => setFilter(c.k)}
               className={clsx(
-                "h-8 rounded-full border px-3 text-[13px] font-medium",
+                "h-8 rounded-full border px-3 text-[0.8125rem] font-medium",
                 filter === c.k
                   ? c.k === "blocked"
                     ? "border-high/30 bg-high-bg text-high"

@@ -33,7 +33,7 @@ function ChartTooltip({ active, payload }: TooltipContentProps<number, string>) 
   const row = payload[0]?.payload as MonthlyLedgerRow | undefined;
   if (!row) return null;
   return (
-    <div className="min-w-[200px] rounded-lg border border-line bg-surface px-3 py-2.5 text-[13px] shadow-pop">
+    <div className="min-w-[12.5rem] rounded-lg border border-line bg-surface px-3 py-2.5 text-[0.8125rem] shadow-pop">
       <p className="mb-1.5 font-medium text-ink">{monthLabel(row.month, true)}</p>
       <dl className="space-y-1">
         <div className="flex items-center justify-between gap-4">
@@ -74,11 +74,11 @@ function MonthTick(props: {
   const missing = missingSet.has(month);
   return (
     <g transform={`translate(${x},${y})`}>
-      <text dy={12} textAnchor="middle" fontSize={11} fill={AXIS_TEXT}>
+      <text dy={13} textAnchor="middle" fontSize={12.5} fill={AXIS_TEXT}>
         {monthLabel(month)}
       </text>
       {missing ? (
-        <g transform="translate(0,22)">
+        <g transform="translate(0,25)">
           <path
             d="M0 -5 L5.5 4.5 L-5.5 4.5 Z"
             fill="none"
@@ -86,7 +86,7 @@ function MonthTick(props: {
             strokeWidth={1.4}
             strokeLinejoin="round"
           />
-          <text dy={17} textAnchor="middle" fontSize={10.5} fontWeight={600} fill="#a35a00">
+          <text dy={18} textAnchor="middle" fontSize={12} fontWeight={600} fill="#a35a00">
             missing
           </text>
         </g>
@@ -123,7 +123,7 @@ export function DuplicateExpenseChart({ rows }: { rows: MonthlyLedgerRow[] }) {
           </div>
         </div>
         <div
-          className="inline-flex rounded-lg border border-line bg-sunken p-0.5 text-[12.5px]"
+          className="inline-flex rounded-lg border border-line bg-sunken p-0.5 text-[0.7813rem]"
           role="group"
           aria-label="Chart view"
         >
@@ -157,7 +157,7 @@ export function DuplicateExpenseChart({ rows }: { rows: MonthlyLedgerRow[] }) {
             </span>
           </div>
           <div
-            className="h-[260px] px-2 pt-2"
+            className="h-[16.25rem] px-2 pt-2"
             role="img"
             aria-label={`Home housing and utilities paid per month. ${housingMonths} of ${rows.length} months have housing paid.${missingSet.size ? ` Missing: ${[...missingSet].map((m) => monthLabel(m, true)).join(", ")}.` : ""}`}
           >
@@ -183,7 +183,7 @@ export function DuplicateExpenseChart({ rows }: { rows: MonthlyLedgerRow[] }) {
                   tickLine={false}
                   axisLine={{ stroke: GRID }}
                   interval={0}
-                  height={52}
+                  height={58}
                   tick={(p) => (
                     <MonthTick x={p.x} y={p.y} payload={p.payload} missingSet={missingSet} />
                   )}
@@ -191,8 +191,8 @@ export function DuplicateExpenseChart({ rows }: { rows: MonthlyLedgerRow[] }) {
                 <YAxis
                   tickLine={false}
                   axisLine={false}
-                  width={48}
-                  tick={{ fontSize: 11, fill: AXIS_TEXT }}
+                  width={54}
+                  tick={{ fontSize: 12.5, fill: AXIS_TEXT }}
                   tickFormatter={compactUsd}
                 />
                 <Tooltip
@@ -224,7 +224,7 @@ export function DuplicateExpenseChart({ rows }: { rows: MonthlyLedgerRow[] }) {
         </>
       ) : (
         <div className="mt-3 overflow-x-auto px-5 pb-2">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-[0.8125rem]">
             <caption className="sr-only">Monthly home costs and stipends</caption>
             <thead>
               <tr className="border-b border-line text-left text-xs text-ink-3">

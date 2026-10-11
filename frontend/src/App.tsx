@@ -6,6 +6,7 @@ import { ActivityPage } from "./pages/ActivityPage";
 import { Connections } from "./pages/Connections";
 import { Overview } from "./pages/Overview";
 import { Packet } from "./pages/Packet";
+import { Privacy } from "./pages/Privacy";
 import { Records } from "./pages/Records";
 import { RiskCheck } from "./pages/RiskCheck";
 import { Timeline } from "./pages/Timeline";
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: "timeline", element: <Timeline /> },
       { path: "packet", element: <Packet /> },
       { path: "connections", element: <Connections /> },
+      { path: "privacy", element: <Privacy /> },
       { path: "*", element: <NotFound /> },
     ],
   },

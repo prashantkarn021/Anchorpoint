@@ -97,7 +97,11 @@ function isUnimplemented(status: number, body: unknown): boolean {
       !!body && typeof body === "object" && (body as { detail?: unknown }).detail === "Not Found"
     );
   }
-  return status === 502 || status === 503 || status === 504;
+  // A proxy (Caddy, the Vite dev server) answers 502-504 with no JSON when the api is down.
+  // FastAPI's own 503 carries a detail (e.g. "TOKEN_ENC_KEY is not set"): that's a real error to
+  // show, never a reason to fake a successful connection with fixtures.
+  const fromApi = !!body && typeof body === "object" && "detail" in body;
+  return (status === 502 || status === 503 || status === 504) && !fromApi;
 }
 
 async function rawRequest<T>(method: string, path: string, body?: unknown): Promise<T> {

@@ -80,13 +80,13 @@ export function ActivityItem({ e, now, fresh }: { e: AuditEvent; now: number; fr
         <Icon className="size-3.5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] leading-snug text-ink">
+        <p className="text-[0.8125rem] leading-snug text-ink">
           <span className={clsx("font-medium", suspicious && "text-high")}>
             {suspicious ? "Blocked suspicious instructions" : actionLabel(e.action)}
           </span>
           <span className="text-ink-4"> · {ACTOR_LABEL[e.actor] ?? e.actor}</span>
         </p>
-        <p className="mt-0.5 text-[13px] leading-snug text-ink-2">{e.detail}</p>
+        <p className="mt-0.5 text-[0.8125rem] leading-snug text-ink-2">{e.detail}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <time
             className="text-xs text-ink-4"

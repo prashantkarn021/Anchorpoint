@@ -52,7 +52,7 @@ function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={clsx(
-          "h-9 appearance-none rounded-lg border bg-surface pr-8 pl-3 text-[13px] focus:border-brand-400 focus:outline-none",
+          "h-9 appearance-none rounded-lg border bg-surface pr-8 pl-3 text-[0.8125rem] focus:border-brand-400 focus:outline-none",
           value ? "border-brand-200 font-medium text-brand-700" : "border-line-strong text-ink-2",
         )}
       >
@@ -160,7 +160,7 @@ export function Records() {
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <label className="relative min-w-[220px] flex-1 sm:max-w-xs">
+        <label className="relative min-w-[13.75rem] flex-1 sm:max-w-xs">
           <span className="sr-only">Search records</span>
           <Search
             className="pointer-events-none absolute top-2.5 left-3 size-4 text-ink-4"
@@ -174,7 +174,7 @@ export function Records() {
               setCursor(-1);
             }}
             placeholder="Search payee, amount, text…"
-            className="h-9 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-[13px] text-ink placeholder:text-ink-4 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
+            className="h-9 w-full rounded-lg border border-line-strong bg-surface pr-3 pl-9 text-[0.8125rem] text-ink placeholder:text-ink-4 focus:border-brand-400 focus:ring-2 focus:ring-brand-100 focus:outline-none"
           />
         </label>
         <Select label="Type" value={filters.type ?? ""} onChange={(v) => setFilter("type", v)}>
@@ -224,7 +224,7 @@ export function Records() {
           onClick={() => setFilter("review", reviewOnly ? "" : "1")}
           aria-pressed={reviewOnly}
           className={clsx(
-            "h-9 rounded-lg border px-3 text-[13px] font-medium",
+            "h-9 rounded-lg border px-3 text-[0.8125rem] font-medium",
             reviewOnly
               ? "border-warn/30 bg-warn-bg text-warn"
               : "border-line-strong bg-surface text-ink-2 hover:bg-sunken",
@@ -278,7 +278,7 @@ export function Records() {
           )
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-[13.5px]">
+            <table className="w-full min-w-[47.5rem] text-[0.8438rem]">
               <caption className="sr-only">Evidence records</caption>
               <thead>
                 <tr className="border-b border-line bg-canvas/60 text-left text-xs text-ink-3">
@@ -319,7 +319,7 @@ export function Records() {
                     <td className="tnum py-2.5 pl-5 whitespace-nowrap text-ink-2">
                       {shortDate(r.date)}
                     </td>
-                    <td className="max-w-[280px] py-2.5">
+                    <td className="max-w-[17.5rem] py-2.5">
                       <button
                         type="button"
                         className="block max-w-full text-left focus-visible:outline-offset-4"
