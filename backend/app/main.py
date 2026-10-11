@@ -3,6 +3,7 @@ import os
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.routers.activity import router as activity_router
 from backend.app.routers.assessment import router as assessment_router
 from backend.app.routers.connections import router as connections_router
 from backend.app.routers.demo import router as demo_router
@@ -38,6 +39,7 @@ app.include_router(connections_router)
 app.include_router(records_router)
 app.include_router(risk_router)
 app.include_router(assessment_router)
+app.include_router(activity_router)
 app.include_router(demo_router)
 app.include_router(sync_router)
 app.include_router(stubs_router)
