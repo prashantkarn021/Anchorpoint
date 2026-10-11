@@ -45,7 +45,7 @@ const VERDICT_STYLE: Record<
   },
 };
 
-const MAX_LEN = 20_000;
+const MAX_LEN = 4_000;
 
 function Narrative({ text, ids }: { text: string; ids: string[] }) {
   const parts = splitRecordIds(text, ids);
