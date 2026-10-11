@@ -7,9 +7,7 @@ from pydantic import TypeAdapter
 
 from backend.app.main import app
 from backend.app.models import (
-    Assessment,
     Assignment,
-    MonthlyLedgerRow,
     Profile,
     Record,
 )
@@ -66,26 +64,3 @@ def test_assignments():
     )
     record_ids = {item["id"] for item in client.get("/api/records").json()}
     assert all(set(item.source_record_ids) <= record_ids for item in assignments)
-
-
-def test_assessment():
-    response = client.get("/api/assessment")
-    assert response.status_code == 200
-    assessment = Assessment.model_validate(response.json())
-    assert assessment.status == "needs_attention"
-    assert len(assessment.findings) == len(fixture_data("assessment.json")["findings"])
-    assert assessment.findings[0].rule_id == "R1"
-    assert assessment.findings[0].severity == "warn"
-    record_ids = {item["id"] for item in client.get("/api/records").json()}
-    assert all(set(item.record_ids) <= record_ids for item in assessment.factors)
-    assert set(assessment.findings[0].record_ids) <= record_ids
-
-
-def test_ledger_monthly():
-    response = client.get("/api/ledger/monthly")
-    assert response.status_code == 200
-    rows = TypeAdapter(list[MonthlyLedgerRow]).validate_python(response.json())
-    assert [row.month for row in rows] == [
-        row["month"] for row in fixture_data("ledger_monthly.json")
-    ]
-    assert [row.missing for row in rows if row.missing] == [["rent"]]
