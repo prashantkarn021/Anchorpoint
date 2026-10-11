@@ -1,23 +1,24 @@
 """Ingestion entry point for P2's sync: one non-bank RawItem -> optional CandidateRecord + AuditEvents.
 
 triage -> (suspicious? log ignored_suspicious, stop) -> (relevant? extract). Never raises on model
-trouble: a model error or an exhausted per-sync call budget becomes an event and the item is
-retried next sync. Bank items never come here (P2 maps them without the LLM).
+trouble: a model error or an exhausted per-sync request budget becomes an event and the item is
+retried next sync. The budget counts real model requests (every turn and retry) at the model
+boundary, see llm.AkamaiModel.stream. Bank items never come here (P2 maps them without the LLM).
 """
 
 import re
-import threading
 import unicodedata
 from datetime import UTC, datetime
 
 from pydantic import BaseModel
 
 from backend.app.agents import extractor
+from backend.app.agents.llm import MAX_REQUESTS_PER_SYNC, CallBudget, budget_exhausted
 from backend.app.agents.prompts import item_text
 from backend.app.agents.triage import triage
 from backend.app.models import AuditEvent, CandidateRecord, Profile, RawItem
 
-MAX_CALLS_PER_SYNC = 40
+__all__ = ["MAX_REQUESTS_PER_SYNC", "CallBudget", "Ingested", "ingest", "looks_injected"]
 
 # Code backstop: obvious instructions to an AI are suspicious even if the model missed them.
 # ponytail: keyword list, the triage model is the main detector
@@ -29,25 +30,6 @@ _INJECTION = re.compile(
     r"|forward (the |your )?(complete )?ledger",
     re.IGNORECASE,
 )
-
-
-class CallBudget:
-    """Model calls allowed in one sync; create one per sync. Thread-safe."""
-
-    def __init__(self, max_calls: int = MAX_CALLS_PER_SYNC):
-        self.left = max_calls
-        self._lock = threading.Lock()
-
-    def take(self, n: int = 1) -> bool:
-        with self._lock:
-            if self.left < n:
-                return False
-            self.left -= n
-            return True
-
-    def refund(self, n: int = 1) -> None:
-        with self._lock:
-            self.left += n
 
 
 class Ingested(BaseModel):
@@ -71,28 +53,28 @@ def _event(item: RawItem, action: str, detail: str) -> AuditEvent:
 def ingest(item: RawItem, profile: Profile, budget: CallBudget) -> Ingested:
     if item.provider == "bank":
         raise ValueError("bank items skip the LLM; map them in sync/")
-    ignored = Ingested(events=[_event(item, "ignored_suspicious", "instructions to an AI were ignored")])
     if looks_injected(item_text(item)):
-        return ignored  # free code check first: no model call, works even with the model down
-    # reserve triage + extraction up front so a triaged item is never left without its extraction
-    if not budget.take(2):
-        return Ingested(events=[_event(item, "deferred_call_cap", "call budget used up; retried next sync")])
+        # free code check first: no model request, works even with the model down or no budget
+        return Ingested(events=[_event(item, "ignored_suspicious", "instructions to an AI were ignored")])
     try:
-        t = triage(item)
+        t = triage(item, budget)
     except Exception as e:  # noqa: BLE001 - any model failure: log, retry next sync
-        budget.refund()
-        return Ingested(events=[_event(item, "model_error", f"triage failed ({type(e).__name__})")])
+        return _failed(item, "triage", e)
 
     if t.suspicious:
-        budget.refund()
-        return ignored
+        return Ingested(events=[_event(item, "ignored_suspicious", "instructions to an AI were ignored")])
     if not t.relevant:
-        budget.refund()
         return Ingested()  # noise: no record, no feed entry
-    if extractor.is_cached(item, profile, t.doc_type):
-        budget.refund()
+    # ponytail: if the budget runs out here, this item's triage requests were spent for nothing;
+    # it is re-triaged next sync (a triage cache would save that)
     try:
-        candidate, cached = extractor.extract(item, profile, t.doc_type)
+        candidate, cached = extractor.extract(item, profile, t.doc_type, budget)
     except Exception as e:  # noqa: BLE001
-        return Ingested(events=[_event(item, "model_error", f"extraction failed ({type(e).__name__})")])
+        return _failed(item, "extraction", e)
     return Ingested(candidate=candidate, cached=cached)
+
+
+def _failed(item: RawItem, stage: str, e: Exception) -> Ingested:
+    if budget_exhausted(e):
+        return Ingested(events=[_event(item, "deferred_call_cap", "model request budget used up; retried next sync")])
+    return Ingested(events=[_event(item, "model_error", f"{stage} failed ({type(e).__name__})")])

@@ -4,7 +4,10 @@ import threading
 import time
 from datetime import UTC, datetime
 
+import httpx
+import openai
 import pytest
+from strands.models.openai import OpenAIModel
 
 from backend.app.agents import extractor, llm, pipeline, triage
 from backend.app.agents.pipeline import CallBudget, ingest
@@ -30,12 +33,12 @@ def models(monkeypatch):
     """Fake triage verdict + extractor; records every extractor call."""
     state = {"triage": TriageResult(relevant=True, doc_type="rent_payment", confidence=0.9), "extract_calls": 0}
 
-    def fake_triage(item):
+    def fake_triage(item, budget=None):
         if isinstance(state["triage"], Exception):
             raise state["triage"]
         return triage.enforce(state["triage"])
 
-    def fake_extract(item, profile, doc_type):
+    def fake_extract(item, profile, doc_type, budget=None):
         state["extract_calls"] += 1
         return CandidateRecord(doc_type=doc_type, amount=1150.0, confidence=0.9), False
 
@@ -88,18 +91,66 @@ def test_hostile_email_ignored_even_with_model_down_or_budget_gone(models):
     assert [e.action for e in ingest(_mail(HOSTILE), PROFILE, CallBudget(0)).events] == ["ignored_suspicious"]
 
 
-def test_call_budget_defers_instead_of_calling(models):
-    budget = CallBudget(max_calls=1)  # triage + extraction needs 2: defer before calling anything
-    r = ingest(_mail(RENT), PROFILE, budget)
-    assert r.candidate is None and [e.action for e in r.events] == ["deferred_call_cap"]
-    assert models["extract_calls"] == 0 and budget.left == 1
+@pytest.fixture
+def wire(monkeypatch):
+    """Real Strands Agent + real AkamaiModel; only the wire is faked (OpenAIModel.stream = one HTTP
+    request). Default reply is plain text, so Strands' structured-output retry kicks in."""
+    monkeypatch.setenv("INFERENCE_API_KEY", "test")
+    monkeypatch.setenv("INFERENCE_BASE_URL", "http://127.0.0.1:9/v1")
+    monkeypatch.setenv("MODEL_ID", "test")
+    monkeypatch.setattr(extractor, "_cache", {})
+    state = {"requests": 0, "fail_first": 0}
+
+    async def fake_request(self, *a, **kw):
+        state["requests"] += 1
+        if state["fail_first"]:
+            state["fail_first"] -= 1
+            raise openai.APIConnectionError(request=httpx.Request("POST", "http://127.0.0.1:9/v1"))
+        yield {"messageStart": {"role": "assistant"}}
+        yield {"contentBlockDelta": {"delta": {"text": "not the structured output"}}}
+        yield {"contentBlockStop": {}}
+        yield {"messageStop": {"stopReason": "end_turn"}}
+
+    monkeypatch.setattr(OpenAIModel, "stream", fake_request)
+    return state
 
 
-def test_unused_extraction_call_is_refunded(models):
-    models["triage"] = TriageResult(relevant=False, confidence=0.95)
-    budget = CallBudget(max_calls=4)
-    ingest(_mail("30% off fall jackets"), PROFILE, budget)
-    assert budget.left == 3  # noise costs only the triage call
+def test_budget_counts_every_request_in_structured_output_retries(wire):
+    # PR #13 review: count model requests, not agent invocations
+    budget = CallBudget(10)
+    with pytest.raises(Exception):  # noqa: B017 - the model never produces valid output
+        triage.triage(_mail(RENT), budget)
+    assert wire["requests"] == 2 and budget.left == 8  # first try + Strands' forced retry, both charged
+
+
+def test_request_cap_holds_across_items_and_defers_without_requests(wire):
+    # 5 items, each would need 2+ requests; budget 5 -> exactly 5 requests go out, the rest defer
+    budget = CallBudget(5)
+    actions = [[e.action for e in ingest(_mail(f"{RENT} #{n}"), PROFILE, budget).events] for n in range(5)]
+    assert wire["requests"] == 5 and budget.left == 0
+    assert actions[:2] == [["model_error"], ["model_error"]]          # spent 2 requests each, bad output
+    assert actions[2:] == [["deferred_call_cap"]] * 3                 # cap hit: no further requests
+    ingest(_mail(RENT), PROFILE, budget)
+    assert wire["requests"] == 5                                       # exhausted budget sends nothing
+
+
+def test_connection_retry_is_sent_and_charged(wire):
+    wire["fail_first"] = 1
+    budget = CallBudget(10)
+    with pytest.raises(Exception) as exc:
+        triage.triage(_mail(RENT), budget)
+    # failed request + our retry, then Strands' forced structured-output retry: 3 sent, 3 charged
+    assert not llm.budget_exhausted(exc.value)
+    assert wire["requests"] == 3 and budget.left == 7
+
+
+def test_connection_retry_is_refused_when_budget_is_gone(wire):
+    wire["fail_first"] = 1
+    budget = CallBudget(1)  # the retry would be a 2nd request: refused before it is sent
+    with pytest.raises(Exception) as exc:
+        triage.triage(_mail(RENT), budget)
+    assert llm.budget_exhausted(exc.value)  # stopped by the budget, not by the connection error
+    assert wire["requests"] == 1 and budget.left == 0
 
 
 def test_model_error_becomes_an_event(models):
@@ -131,7 +182,7 @@ def test_at_most_four_model_calls_in_flight(monkeypatch):
                                   "stop_reason": "end_turn"})()
 
     monkeypatch.setattr(triage, "Agent", SlowAgent)
-    monkeypatch.setattr(triage, "make_model", lambda: None)
+    monkeypatch.setattr(triage, "make_model", lambda budget=None: None)
     threads = [threading.Thread(target=triage.triage, args=(_mail(RENT),)) for _ in range(10)]
     for t in threads:
         t.start()

@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # for p1_samples
 from p1_samples import EXPECTED, PROFILE, SAMPLES
 
 from backend.app.agents.extractor import needs_review
-from backend.app.agents.pipeline import MAX_CALLS_PER_SYNC, CallBudget, ingest
+from backend.app.agents.pipeline import MAX_REQUESTS_PER_SYNC, CallBudget, ingest
 
 
 def main() -> int:
@@ -32,7 +32,7 @@ def main() -> int:
         got = (f"{r.candidate.doc_type} review={needs_review(r.candidate)}" if r.candidate else "-")
         passed += ok
         print(f"{'PASS' if ok else 'FAIL'}  {item.source_id:<16} candidate={got:<28} events={actions}")
-    print(f"{passed}/{len(SAMPLES)} passed; model calls used {MAX_CALLS_PER_SYNC - budget.left}/{MAX_CALLS_PER_SYNC}")
+    print(f"{passed}/{len(SAMPLES)} passed; model requests used {MAX_REQUESTS_PER_SYNC - budget.left}/{MAX_REQUESTS_PER_SYNC}")
     return 0 if passed == len(SAMPLES) else 1
 
 

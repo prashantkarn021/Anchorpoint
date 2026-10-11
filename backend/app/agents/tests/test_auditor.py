@@ -53,10 +53,36 @@ def test_invented_record_id_falls_back_in_any_form(monkeypatch):
         assert _ai(monkeypatch, text), text  # prose, not IDs
 
 
+def test_unknown_prefix_id_falls_back_in_narrative_and_questions(monkeypatch):
+    # PR #13 review: an invented ID with a prefix no real record uses
+    assert not _ai(monkeypatch, "Your rent is supported by fabricated-999, so R1 is resolved.")
+    assert not _ai(monkeypatch, "June rent is missing [rent-05].", questions=["Does fabricated-999 count?"])
+    assert not _ai(monkeypatch, "Rent proof [rent-2026] is on file.")  # real prefix, year-shaped: still checked
+    for text in ["See fabricated-2026.", "See lease-renewal-2026.",          # year-shaped invented IDs
+                 "R–12 applies.", "Rule—12 applies.", "R‑12 too",  # en/em dash, non-breaking hyphen
+                 "Proof: rent‑9999.", "R­12 applies.", "Proof: rent\u200b-9999.",  # invisible chars
+                 "R\u034f12 applies.", "R\ufe0f12 applies.", "Proof: rent-\u034f9999.", "R\u316412 applies.",
+                 "Missing proof\nR9 applies.", "\u200b\u200b"]:  # newline keeps words apart; invisible-only = empty
+        assert not _ai(monkeypatch, text), text
+
+
 def test_invented_rule_falls_back_in_any_form(monkeypatch):
     for text in ["R1 and also R9 high risk.", "Rule 9 applies.", "see r9", "R 9 too", "Rules 9 and 1", "R-9 applies", "Rule #9"]:
         assert not _ai(monkeypatch, text), text
     assert _ai(monkeypatch, "Rule 1 and R3 apply.")
+
+
+def test_every_rule_in_a_group_is_checked(monkeypatch):
+    # PR #13 review: grouped mentions used to read only the first number
+    for text in ["Rules 1 and 9 apply to your missing housing evidence [rent-05].",
+                 "R1, R3 and R9 apply.", "Rules 1, 3 & 9", "Rule 1/9",
+                 "Rules 1-9 apply.", "Rules 1 to 9.", "Rules 1 through 9 apply."]:
+        assert not _ai(monkeypatch, text), text
+    assert not _ai(monkeypatch, "June rent is missing [rent-05].", questions=["Do Rules 3 and 9 apply?"])
+    for text in ["Rules 1 and 3 apply [rent-05].", "R1 in 2026 [rent-05].", "R1 for 10 months [rent-05].",
+                 "R-1 applies [rent-05].", "Rule-1 applies.", "Rules 1-3 apply.",
+                 "Your H-1B, W-2s and i-94 since mid-June-2026, post-9/11 rules aside [rent-05]."]:
+        assert _ai(monkeypatch, text), text
 
 
 def test_question_count_enforced(monkeypatch):

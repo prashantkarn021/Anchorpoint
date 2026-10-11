@@ -10,7 +10,7 @@ import re
 from pypdf import PdfReader
 from strands import Agent
 
-from backend.app.agents.llm import make_model, model_slot
+from backend.app.agents.llm import CallBudget, make_model, model_slot
 from backend.app.agents.prompts import EXTRACTOR_SYSTEM, item_text, wrap_document
 from backend.app.common.hashing import content_hash
 from backend.app.models import CandidateRecord, Profile, RawItem, RecordType
@@ -74,8 +74,8 @@ def pdf_text(data: bytes) -> str:
     return "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(data)).pages).strip()
 
 
-def _run_agent(prompt: str) -> CandidateRecord:
-    agent = Agent(model=make_model(), system_prompt=EXTRACTOR_SYSTEM, tools=[], callback_handler=None)
+def _run_agent(prompt: str, budget: CallBudget | None = None) -> CandidateRecord:
+    agent = Agent(model=make_model(budget), system_prompt=EXTRACTOR_SYSTEM, tools=[], callback_handler=None)
     with model_slot:
         result = agent(prompt, structured_output_model=CandidateRecord, limits={"turns": 3})
     if result.structured_output is None:
@@ -92,17 +92,15 @@ def _key(item: RawItem, profile: Profile, doc_type: RecordType) -> tuple[str, st
     return content_hash(item_text(item)), doc_type, content_hash(_holder(profile))
 
 
-def is_cached(item: RawItem, profile: Profile, doc_type: RecordType) -> bool:
-    """Lets the pipeline skip the call budget when no model call is needed."""
-    return _key(item, profile, doc_type) in _cache
-
-
-def extract(item: RawItem, profile: Profile, doc_type: RecordType) -> tuple[CandidateRecord, bool]:
-    """Returns (record, cached). Raises on model failure; pipeline.ingest turns that into an event."""
+def extract(item: RawItem, profile: Profile, doc_type: RecordType,
+            budget: CallBudget | None = None) -> tuple[CandidateRecord, bool]:
+    """Returns (record, cached). A cache hit makes no model request, so it costs no budget.
+    Raises on model failure or an exhausted budget; pipeline.ingest turns that into an event."""
     text, holder, key = item_text(item), _holder(profile), _key(item, profile, doc_type)
     if key in _cache:
         return _cache[key].model_copy(deep=True), True  # callers can't mutate the cache
-    record = enforce(_run_agent(f"{holder}\nTriage guessed doc_type: {doc_type}\n\n" + wrap_document(text)), text)
+    prompt = f"{holder}\nTriage guessed doc_type: {doc_type}\n\n" + wrap_document(text)
+    record = enforce(_run_agent(prompt, budget), text)
     record = match_home(record, profile.home_address)
     _cache[key] = record
     return record.model_copy(deep=True), False
