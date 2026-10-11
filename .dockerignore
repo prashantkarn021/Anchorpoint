@@ -3,7 +3,8 @@
 .env
 .env.*
 frontend
-scripts
+scripts/*
+!scripts/personas
 *.md
 **/__pycache__
 **/.pytest_cache
